@@ -1760,10 +1760,9 @@ function library:CreateWindow(name, size, hidebutton)
                 return toggle
             end
 
-            function sector:AddTextbox(text, placeholder, default, callback, flag)
+            function sector:AddTextbox(text, default, callback, flag)
                 local textbox = { }
                 textbox.text = text or ""
-                textbox.placeholder = placeholder or ""
                 textbox.callback = callback or function() end
                 textbox.default = default
                 textbox.value = ""
@@ -1799,7 +1798,7 @@ function library:CreateWindow(name, size, hidebutton)
                 textbox.Gradient.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0.00, Color3.fromRGB(49, 49, 49)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(39, 39, 39)) })
 
                 textbox.Main = Instance.new("TextBox", textbox.Holder)
-                textbox.Main.PlaceholderText = textbox.placeholder
+                textbox.Main.PlaceholderText = textbox.text
                 textbox.Main.PlaceholderColor3 = Color3.fromRGB(190, 190, 190)
                 textbox.Main.Text = ""
                 textbox.Main.BackgroundTransparency = 1
