@@ -3273,7 +3273,7 @@ function library:CreateWindow(name, size, hidebutton)
                         end
                     end
                 end
-            end, "Configs_Create")
+            end)
 
             configSystem.Save = configSystem.sector:AddButton("Save", function()
                 local config = {}
@@ -3294,7 +3294,7 @@ function library:CreateWindow(name, size, hidebutton)
     
                     writefile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt", httpservice:JSONEncode(config))
                 end
-            end, "Configs_Save")
+            end)
 
             configSystem.Load = configSystem.sector:AddButton("Load", function()
                 local Success = pcall(readfile, configSystem.configFolder .. "/" .. Config:Get() .. ".txt")
@@ -3321,7 +3321,7 @@ function library:CreateWindow(name, size, hidebutton)
     
                         for i,v in pairs(library.flags) do
                             for i2,v2 in pairs(library.items) do
-                                if (i ~= nil and i ~= "" and v2.flag ~= nil) then
+                                if (i ~= nil and i ~= "" and i ~= "Configs_Name" and i ~= "Configs" and v2.flag ~= nil) then
                                     if (v2.flag == i) then
                                         pcall(function() 
                                             v2:Set(v)
@@ -3332,7 +3332,7 @@ function library:CreateWindow(name, size, hidebutton)
                         end
                     end)
                 end
-            end, "Configs_Load")
+            end)
 
             configSystem.Delete = configSystem.sector:AddButton("Delete", function()
                 for i,v in pairs(listfiles(configSystem.configFolder)) do
@@ -3348,7 +3348,7 @@ function library:CreateWindow(name, size, hidebutton)
                         Config:Add(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
                     end
                 end
-            end, "Configs_Delete")
+            end)
 
             return configSystem
         end
