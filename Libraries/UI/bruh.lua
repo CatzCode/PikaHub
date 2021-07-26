@@ -982,7 +982,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.callback = callback or function() end
                     dropdown.multichoice = multichoice or false
                     dropdown.values = { }
-                    dropdown.flag = flag or ( (toggle.text or "") .. tostring(#sector.Items:GetChildren()) .. "a")
+                    dropdown.flag = flag or ( (toggle.text or "") .. tostring(#(sector.Items:GetChildren())) .. "a")
     
                     dropdown.Main = Instance.new("TextButton", sector.Items)
                     dropdown.Main.Name = "dropdown"
