@@ -1133,7 +1133,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.IgnoreBackButtons.Visible = false
                     dropdown.IgnoreBackButtons.AutoButtonColor = false
 
-                    library.flags[dropdown.flag] = { dropdown.default or dropdown.defaultitems[1] or "" }
+                    library.flags[dropdown.flag] = dropdown.multichoice and { dropdown.default or dropdown.defaultitems[1] or "" } or (dropdown.default or dropdown.defaultitems[1] or "")
     
                     function dropdown:isSelected(item)
                         for i, v in pairs(dropdown.values) do
@@ -1162,7 +1162,7 @@ function library:CreateWindow(name, size, hidebutton)
                             pcall(dropdown.callback, value)
                         end
 
-                        library.flags[dropdown.flag] = dropdown.values
+                        library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
                     end
     
                     function dropdown:Get()
@@ -2438,8 +2438,8 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.IgnoreBackButtons.Visible = false
                     dropdown.IgnoreBackButtons.AutoButtonColor = false
 
-                    library.flags[dropdown.flag] = dropdown.default or dropdown.defaultitems[1] or ""
-    
+                    library.flags[dropdown.flag] = dropdown.multichoice and { dropdown.default or dropdown.defaultitems[1] or "" } or (dropdown.default or dropdown.defaultitems[1] or "")
+
                     function dropdown:isSelected(item)
                         for i, v in pairs(dropdown.values) do
                             if v == item then
@@ -2467,7 +2467,7 @@ function library:CreateWindow(name, size, hidebutton)
                             pcall(dropdown.callback, value)
                         end
 
-                        library.flags[dropdown.flag] = dropdown.values
+                        library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
                     end
     
                     function dropdown:Get()
@@ -2972,7 +2972,7 @@ function library:CreateWindow(name, size, hidebutton)
                 dropdown.IgnoreBackButtons.Visible = false
                 dropdown.IgnoreBackButtons.AutoButtonColor = false
 
-                library.flags[dropdown.flag] = { dropdown.default or dropdown.defaultitems[1] or "" }
+                library.flags[dropdown.flag] = dropdown.multichoice and { dropdown.default or dropdown.defaultitems[1] or "" } or (dropdown.default or dropdown.defaultitems[1] or "")
 
                 function dropdown:isSelected(item)
                     for i, v in pairs(dropdown.values) do
@@ -3004,7 +3004,8 @@ function library:CreateWindow(name, size, hidebutton)
                         dropdown.values = { value }
                         pcall(dropdown.callback, value)
                     end
-                    library.flags[dropdown.flag] = dropdown.values
+                    
+                    library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
                 end
 
                 function dropdown:Get()
