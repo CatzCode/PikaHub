@@ -944,7 +944,7 @@ function library:CreateWindow(name, size, hidebutton)
                             keybind.value = key
                             library.flags[keybind.flag] = key
                         end
-                        keybind.Main.Text = "[" .. (shorter_keycodes[key.Name] or key.Name):upper() .. "]"
+                        keybind.Main.Text = "[" .. (shorter_keycodes[key.Name] or key.Name) .. "]"
                         keybind.value = key
                         library.flags[keybind.flag] = keybind.value
                     end
@@ -2752,7 +2752,7 @@ function library:CreateWindow(name, size, hidebutton)
                     end
 
                     keybind.value = value
-                    keybind.Bind.Text = "[" .. (shorter_keycodes[value.Name or value] or (value.Name or value)):upper() .. "]"
+                    keybind.Bind.Text = "[" .. (shorter_keycodes[value.Name or value] or (value.Name or value)) .. "]"
 
                     local size = textservice:GetTextSize(keybind.Bind.Text, keybind.Bind.TextSize, keybind.Bind.Font, Vector2.new(2000, 2000))
                     keybind.Bind.Size = UDim2.fromOffset(size.X, size.Y)
@@ -3295,34 +3295,38 @@ function library:CreateWindow(name, size, hidebutton)
             configSystem.Load = configSystem.sector:AddButton("Load", function()
                 local Success = pcall(readfile, configSystem.configFolder .. "/" .. Config:Get() .. ".txt")
                 if (Success) then
-                    local ReadConfig = httpservice:JSONDecode(readfile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt"))
-                    local NewConfig = {}
-
-                    for i,v in pairs(ReadConfig) do
-                        if (typeof(v) == "table") then
-                            if (typeof(v[1]) == "number") then
-                                NewConfig[i] = Color3.new(v[1], v[2], v[3])
-                            elseif (typeof(v[1]) == "table") then
-                                NewConfig[i] = v[1]
+                    pcall(function() 
+                        local ReadConfig = httpservice:JSONDecode(readfile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt"))
+                        local NewConfig = {}
+    
+                        for i,v in pairs(ReadConfig) do
+                            if (typeof(v) == "table") then
+                                if (typeof(v[1]) == "number") then
+                                    NewConfig[i] = Color3.new(v[1], v[2], v[3])
+                                elseif (typeof(v[1]) == "table") then
+                                    NewConfig[i] = v[1]
+                                end
+                            elseif (tostring(v):find("Enum.KeyCode.")) then
+                                NewConfig[i] = Enum.KeyCode[tostring(v):gsub("Enum.KeyCode.", "")]
+                            else
+                                NewConfig[i] = v
                             end
-                        elseif (tostring(v):find("Enum.KeyCode.")) then
-                            NewConfig[i] = Enum.KeyCode[tostring(v):gsub("Enum.KeyCode.", "")]
-                        else
-                            NewConfig[i] = v
                         end
-                    end
-
-                    library.flags = NewConfig
-
-                    for i,v in pairs(library.flags) do
-                        for i2,v2 in pairs(library.items) do
-                            if (i ~= nil and i ~= "" and v2.flag ~= nil) then
-                                if (v2.flag == i) then
-                                    v2:Set(v)
+    
+                        library.flags = NewConfig
+    
+                        for i,v in pairs(library.flags) do
+                            for i2,v2 in pairs(library.items) do
+                                if (i ~= nil and i ~= "" and v2.flag ~= nil) then
+                                    if (v2.flag == i) then
+                                        pcall(function() 
+                                            v2:Set(v)
+                                        end)
+                                    end
                                 end
                             end
                         end
-                    end
+                    end)
                 end
             end, "Configs_Load")
 
