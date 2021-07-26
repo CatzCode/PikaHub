@@ -726,7 +726,6 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 button.BlackOutline2.MouseEnter:Connect(function()
-                    if checkIfGuiInFront(button.Label.AbsolutePosition) then return end
                     button.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                 end)
 
@@ -875,7 +874,7 @@ function library:CreateWindow(name, size, hidebutton)
                 toggle.ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
                 toggle.ListLayout.Padding = UDim.new(0.04, 6)
 
-                library.flags[toggle.flag] = false
+                library.flags[toggle.flag] = toggle.default or false
 
                 function toggle:Set(value) 
                     if value then
@@ -937,10 +936,15 @@ function library:CreateWindow(name, size, hidebutton)
                         end
                     end)
 
-                    library.flags[keybind.flag] = "None"
+                    library.flags[keybind.flag] = keybind.default
 
                     function keybind:Set(key)
-                        keybind.Main.Text = "[" .. (shorter_keycodes[key.Name] or key.Name) .. "]"
+                        if key == "None" then
+                            keybind.Main.Text = "[" .. key .. "]"
+                            keybind.value = key
+                            library.flags[keybind.flag] = key
+                        end
+                        keybind.Main.Text = "[" .. (shorter_keycodes[key.Name] or key.Name):upper() .. "]"
                         keybind.value = key
                         library.flags[keybind.flag] = keybind.value
                     end
@@ -954,13 +958,9 @@ function library:CreateWindow(name, size, hidebutton)
                             if keybind.Main.Text == "[...]" then
                                 keybind.Main.TextColor3 = Color3.fromRGB(136, 136, 136)
                                 if input.UserInputType == Enum.UserInputType.Keyboard then
-                                    keybind.Main.Text = "[" .. (shorter_keycodes[input.KeyCode.Name] or input.KeyCode.Name) .. "]"
-                                    keybind.value = input.KeyCode
-                                    library.flags[keybind.flag] = keybind.value
+                                    keybind:Set(input.KeyCode)
                                 else
-                                    keybind.Main.Text = "[None]"
-                                    keybind.value = "None"
-                                    library.flags[keybind.flag] = keybind.value
+                                    keybind:Set("None")
                                 end
                             else
                                 if keybind.value ~= "None" and input.KeyCode == keybind.value then
@@ -982,7 +982,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.callback = callback or function() end
                     dropdown.multichoice = multichoice or false
                     dropdown.values = { }
-                    dropdown.flag = flag or ( (toggle.text or "") .. tostring(#toggle.Items:GetChildren()))
+                    dropdown.flag = flag or ( (toggle.text or "") .. tostring(#sector.Items:GetChildren()) .. "a")
     
                     dropdown.Main = Instance.new("TextButton", sector.Items)
                     dropdown.Main.Name = "dropdown"
@@ -1133,7 +1133,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.IgnoreBackButtons.Visible = false
                     dropdown.IgnoreBackButtons.AutoButtonColor = false
 
-                    library.flags[dropdown.flag] = ""
+                    library.flags[dropdown.flag] = dropdown.default or dropdown.defaultitems[1] or ""
     
                     function dropdown:isSelected(item)
                         for i, v in pairs(dropdown.values) do
@@ -1300,7 +1300,6 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.Nav.MouseButton1Down:Connect(MouseButton1Down)
     
                     dropdown.BlackOutline2.MouseEnter:Connect(function()
-                        if checkIfGuiInFront(dropdown.Main.AbsolutePosition) then return end
                         dropdown.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                     end)
                     dropdown.BlackOutline2.MouseLeave:Connect(function()
@@ -1370,7 +1369,7 @@ function library:CreateWindow(name, size, hidebutton)
                     end)
 
                     colorpicker.BlackOutline2.MouseEnter:Connect(function()
-                        if checkIfGuiInFront(colorpicker.Main.AbsolutePosition) then return end
+
                         colorpicker.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                     end)
                     colorpicker.BlackOutline2.MouseLeave:Connect(function()
@@ -1474,7 +1473,7 @@ function library:CreateWindow(name, size, hidebutton)
                     colorpicker.pointer.Size = UDim2.new(0,2,0,10)
                     colorpicker.pointer.BorderColor3 = Color3.fromRGB(255, 255, 255)
 
-                    library.flags[colorpicker.flag] = Color3.new()
+                    library.flags[colorpicker.flag] = colorpicker.default
 
                     function colorpicker:RefreshHue()
                         local x = (mouse.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X
@@ -1665,14 +1664,13 @@ function library:CreateWindow(name, size, hidebutton)
                     end)
     
                     slider.BlackOutline2.MouseEnter:Connect(function()
-                        if checkIfGuiInFront(slider.Main.AbsolutePosition) then return end
                         slider.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                     end)
                     slider.BlackOutline2.MouseLeave:Connect(function()
                         slider.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
                     end)
     
-                    library.flags[slider.flag] = 0
+                    library.flags[slider.flag] = slider.default or slider.min or 0
     
                     function slider:Get()
                         return slider.value
@@ -1743,7 +1741,6 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 local MouseEnter = function()
-                    if checkIfGuiInFront(toggle.Main.AbsolutePosition) then return end
                     toggle.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                 end
                 local MouseLeave = function()
@@ -1815,7 +1812,7 @@ function library:CreateWindow(name, size, hidebutton)
                 textbox.Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 textbox.Main.TextXAlignment = Enum.TextXAlignment.Left
 
-                library.flags[textbox.flag] = ""
+                library.flags[textbox.flag] = textbox.default or ""
 
                 function textbox:Set(text)
                     textbox.value = text
@@ -1873,7 +1870,6 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 textbox.BlackOutline2.MouseEnter:Connect(function()
-                    if checkIfGuiInFront(textbox.Main.AbsolutePosition) then return end
                     textbox.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                 end)
                 textbox.BlackOutline2.MouseLeave:Connect(function()
@@ -2003,14 +1999,13 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 slider.BlackOutline2.MouseEnter:Connect(function()
-                    if checkIfGuiInFront(slider.MainBack.AbsolutePosition) then return end
                     slider.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                 end)
                 slider.BlackOutline2.MouseLeave:Connect(function()
                     slider.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
                 end)
 
-                library.flags[slider.flag] = 0
+                library.flags[slider.flag] = slider.default or slider.min or 0
 
                 function slider:Get()
                     return slider.value
@@ -2153,7 +2148,6 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 colorpicker.BlackOutline2.MouseEnter:Connect(function()
-                    if checkIfGuiInFront(colorpicker.BlackOutline2.AbsolutePosition) then return end
                     colorpicker.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                 end)
                 colorpicker.BlackOutline2.MouseLeave:Connect(function()
@@ -2257,7 +2251,7 @@ function library:CreateWindow(name, size, hidebutton)
                 colorpicker.pointer.Size = UDim2.new(0,2,0,10)
                 colorpicker.pointer.BorderColor3 = Color3.fromRGB(255, 255, 255)
 
-                library.flags[colorpicker.flag] = Color3.new()
+                library.flags[colorpicker.flag] = colorpicker.default
 
                 function colorpicker:RefreshSelector()
                     local pos = math.clamp((mouse.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X, 0, 1)
@@ -2444,7 +2438,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.IgnoreBackButtons.Visible = false
                     dropdown.IgnoreBackButtons.AutoButtonColor = false
 
-                    library.flags[dropdown.flag] = ""
+                    library.flags[dropdown.flag] = dropdown.default or dropdown.defaultitems[1] or ""
     
                     function dropdown:isSelected(item)
                         for i, v in pairs(dropdown.values) do
@@ -2734,7 +2728,7 @@ function library:CreateWindow(name, size, hidebutton)
                     keybind.Bind.Font = theme.font
                 end)
 
-                library.flags[keybind.flag] = "None"
+                library.flags[keybind.flag] = keybind.default
 
                 local shorter_keycodes = {
                     ["LeftShift"] = "LSHIFT",
@@ -2746,6 +2740,17 @@ function library:CreateWindow(name, size, hidebutton)
                 }
 
                 function keybind:Set(value)
+                    if value == "None" then
+                        keybind.value = value
+                        keybind.Bind.Text = "[" .. value .. "]"
+    
+                        local size = textservice:GetTextSize(keybind.Bind.Text, keybind.Bind.TextSize, keybind.Bind.Font, Vector2.new(2000, 2000))
+                        keybind.Bind.Size = UDim2.fromOffset(size.X, size.Y)
+                        keybind.Bind.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 10 - keybind.Bind.AbsoluteSize.X, 0)
+                        library.flags[keybind.flag] = value
+                        pcall(keybind.newkeycallback, value)
+                    end
+
                     keybind.value = value
                     keybind.Bind.Text = "[" .. (shorter_keycodes[value.Name or value] or (value.Name or value)):upper() .. "]"
 
@@ -3217,127 +3222,127 @@ function library:CreateWindow(name, size, hidebutton)
         end
 
         function tab:CreateConfigSystem(side)
-            local configFolder = window.name .. "/" .. tostring(game.PlaceId)
-            if (not isfolder(configFolder)) then
-                makefolder(configFolder)
+            local configSystem = { }
+
+            configSystem.configFolder = window.name .. "/" .. tostring(game.PlaceId)
+            if (not isfolder(configSystem.configFolder)) then
+                makefolder(configSystem.configFolder)
             end
 
-            local Configs = tab:CreateSector("Configs", side or "left"); do
-                local ConfigName = Configs:AddTextbox("Config Name", "", ConfigName, function() end)
-                local Config = Configs:AddDropdown("Configs", {}, tostring(listfiles(configFolder)[1] or ""):gsub(configFolder .. "\\", ""):gsub(".txt", ""), false, function() end)
+            configSystem.sector = tab:CreateSector("Configs", side or "left")
+
+            local ConfigName = configSystem.sector:AddTextbox("Config Name", "", ConfigName, function() end)
+            local Config = configSystem.sector:AddDropdown("Configs", {}, tostring(listfiles(configSystem.configFolder)[1] or ""):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""), false, function() end)
+            for i,v in pairs(listfiles(configSystem.configFolder)) do
+                if v:find(".txt") then
+                    Config:Add(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
+                end
+            end
+
+            configSystem.Create = configSystem.sector:AddButton("Create", function()
+                for i,v in pairs(listfiles(configSystem.configFolder)) do
+                    Config:Remove(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
+                end
+
+                if ConfigName:Get() and ConfigName:Get() ~= "" then
+                    local config = {}
     
-                for i,v in pairs(listfiles(configFolder)) do
-                    if v:find(".txt") then
-                        Config:Add(tostring(v):gsub(configFolder .. "\\", ""):gsub(".txt", ""))
+                    for i,v in pairs(library.flags) do
+                        if (v ~= nil and v ~= "") then
+                            if (typeof(v) == "Color3") then
+                                config[i] = { v.R, v.G, v.B }
+                            elseif (tostring(v):find("Enum.KeyCode")) then
+                                config[i] = v.Name
+                            elseif (typeof(v) == "table") then
+                                config[i] = { v }
+                            else
+                                config[i] = v
+                            end
+                        end
+                    end
+    
+                    writefile(configSystem.configFolder .. "/" .. ConfigName:Get() .. ".txt", httpservice:JSONEncode(config))
+    
+                    for i,v in pairs(listfiles(configSystem.configFolder)) do
+                        if v:find(".txt") then
+                            Config:Add(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
+                        end
                     end
                 end
-    
-                Configs:AddButton("Create", function()
-                    for i,v in pairs(listfiles(configFolder)) do
-                        Config:Remove(tostring(v):gsub(configFolder .. "\\", ""):gsub(".txt", ""))
-                    end
+            end)
 
-                    if ConfigName:Get() and ConfigName:Get() ~= "" then
-                        local config = {}
-        
-                        for i,v in pairs(library.flags) do
-                            if (v ~= nil and v ~= "") then
-                                if (typeof(v) == "Color3") then
-                                    config[i] = { v.R, v.G, v.B }
-                                elseif (tostring(v):find("Enum.KeyCode")) then
-                                    config[i] = v.Name
-                                elseif (typeof(v) == "table") then
-                                    config[i] = { v }
-                                else
-                                    config[i] = v
-                                end
-                            end
-                        end
-        
-                        writefile(configFolder .. "/" .. ConfigName:Get() .. ".txt", httpservice:JSONEncode(config))
-        
-                        for i,v in pairs(listfiles(configFolder)) do
-                            if v:find(".txt") then
-                                Config:Add(tostring(v):gsub(configFolder .. "\\", ""):gsub(".txt", ""))
-                            end
-                        end
-                    end
-                end)
-    
-                Configs:AddButton("Save", function()
-                    local config = {}
-                    if Config:Get() and Config:Get() ~= "" then
-                        print'test'
-                        for i,v in pairs(library.flags) do
-                            if (v ~= nil and v ~= "") then
-                                if (typeof(v) == "Color3") then
-                                    config[i] = { v.R, v.G, v.B }
-                                elseif (tostring(v):find("Enum.KeyCode")) then
-                                    config[i] = "Enum.KeyCode." .. v.Name
-                                elseif (typeof(v) == "table") then
-                                    config[i] = { v }
-                                else
-                                    config[i] = v
-                                end
-                            end
-                        end
-        
-                        writefile(configFolder .. "/" .. Config:Get() .. ".txt", httpservice:JSONEncode(config))
-                    end
-                end)
-    
-                Configs:AddButton("Load", function()
-                    local Success = pcall(readfile, configFolder .. "/" .. Config:Get() .. ".txt")
-                    if (Success) then
-                        local ReadConfig = httpservice:JSONDecode(readfile(configFolder .. "/" .. Config:Get() .. ".txt"))
-                        local NewConfig = {}
-
-                        for i,v in pairs(ReadConfig) do
-                            if (typeof(v) == "table") then
-                                if (typeof(v[1]) == "number") then
-                                    NewConfig[i] = Color3.new(v[1], v[2], v[3])
-                                elseif (typeof(v[1]) == "table") then
-                                    NewConfig[i] = v[1]
-                                end
-                            elseif (tostring(v):find("Enum.KeyCode.")) then
-                                NewConfig[i] = Enum.KeyCode[tostring(v):gsub("Enum.KeyCode.", "")]
+            configSystem.Save = configSystem.sector:AddButton("Save", function()
+                local config = {}
+                if Config:Get() and Config:Get() ~= "" then
+                    for i,v in pairs(library.flags) do
+                        if (v ~= nil and v ~= "") then
+                            if (typeof(v) == "Color3") then
+                                config[i] = { v.R, v.G, v.B }
+                            elseif (tostring(v):find("Enum.KeyCode")) then
+                                config[i] = "Enum.KeyCode." .. v.Name
+                            elseif (typeof(v) == "table") then
+                                config[i] = { v }
                             else
-                                NewConfig[i] = v
+                                config[i] = v
                             end
                         end
+                    end
     
-                        library.flags = NewConfig
+                    writefile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt", httpservice:JSONEncode(config))
+                end
+            end)
 
-                        for i,v in pairs(library.flags) do
-                            for i2,v2 in pairs(library.items) do
-                                if (i ~= nil and i ~= "" and v2.flag ~= nil) then
-                                    if (v2.flag == i) then
-                                        v2:Set(v)
-                                    end
+            configSystem.Load = configSystem.sector:AddButton("Load", function()
+                local Success = pcall(readfile, configSystem.configFolder .. "/" .. Config:Get() .. ".txt")
+                if (Success) then
+                    local ReadConfig = httpservice:JSONDecode(readfile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt"))
+                    local NewConfig = {}
+
+                    for i,v in pairs(ReadConfig) do
+                        if (typeof(v) == "table") then
+                            if (typeof(v[1]) == "number") then
+                                NewConfig[i] = Color3.new(v[1], v[2], v[3])
+                            elseif (typeof(v[1]) == "table") then
+                                NewConfig[i] = v[1]
+                            end
+                        elseif (tostring(v):find("Enum.KeyCode.")) then
+                            NewConfig[i] = Enum.KeyCode[tostring(v):gsub("Enum.KeyCode.", "")]
+                        else
+                            NewConfig[i] = v
+                        end
+                    end
+
+                    library.flags = NewConfig
+
+                    for i,v in pairs(library.flags) do
+                        for i2,v2 in pairs(library.items) do
+                            if (i ~= nil and i ~= "" and v2.flag ~= nil) then
+                                if (v2.flag == i) then
+                                    v2:Set(v)
                                 end
                             end
                         end
                     end
-                end)
-    
-                Configs:AddButton("Delete", function()
-                    for i,v in pairs(listfiles(configFolder)) do
-                        Config:Remove(tostring(v):gsub(configFolder .. "\\", ""):gsub(".txt", ""))
+                end
+            end)
+
+            configSystem.Delete = configSystem.sector:AddButton("Delete", function()
+                for i,v in pairs(listfiles(configSystem.configFolder)) do
+                    Config:Remove(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
+                end
+
+                if (not Config:Get() or Config:Get() == "") then return end
+                if (not isfile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt")) then return end
+                delfile(configSystem.configFolder .. "/" .. Config:Get() .. ".txt")
+
+                for i,v in pairs(listfiles(configSystem.configFolder)) do
+                    if v:find(".txt") then
+                        Config:Add(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
                     end
-    
-                    if (not Config:Get() or Config:Get() == "") then return end
-                    if (not isfile(configFolder .. "/" .. Config:Get() .. ".txt")) then return end
-                    delfile(configFolder .. "/" .. Config:Get() .. ".txt")
-    
-                    for i,v in pairs(listfiles(configFolder)) do
-                        if v:find(".txt") then
-                            Config:Add(tostring(v):gsub(configFolder .. "\\", ""):gsub(".txt", ""))
-                        end
-                    end
-                end)
-            end
-    
-            return Configs
+                end
+            end)
+
+            return configSystem
         end
 
         --[[ not finished lol
