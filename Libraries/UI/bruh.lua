@@ -9,18 +9,22 @@ local tweenservice = game:GetService("TweenService")
 local marketplaceservice = game:GetService("MarketplaceService")
 local textservice = game:GetService("TextService")
 local coregui = game:GetService("CoreGui")
+local httpservice = game:GetService("HttpService")
 
 local player = players.LocalPlayer
 local mouse = player:GetMouse()
 local camera = game.Workspace.CurrentCamera
 
+library = {flags = {},items = {}}
+
 library.theme = {
     fontsize = 15,
+    titlesize = 18,
     font = Enum.Font.Code,
     background = "rbxassetid://5553946656",
     tilesize = 90,
     backgroundcolor = Color3.fromRGB(20, 20, 20),
-    tabstextcolor = Color3.fromRGB(230, 230, 230),
+    tabstextcolor = Color3.fromRGB(240, 240, 240),
     bordercolor = Color3.fromRGB(60, 60, 60),
     accentcolor = Color3.fromRGB(28, 56, 139),
     accentcolor2 = Color3.fromRGB(16, 31, 78),
@@ -30,12 +34,31 @@ library.theme = {
     toptextcolor = Color3.fromRGB(255, 255, 255),
     topheight = 48,
     topcolor = Color3.fromRGB(30, 30, 30),
-    topcolor2 = Color3.fromRGB(30, 30, 30), -- Color3.fromRGB(12, 12, 12),
+    topcolor2 = Color3.fromRGB(30, 30, 30),
     buttoncolor = Color3.fromRGB(49, 49, 49),
     buttoncolor2 = Color3.fromRGB(39, 39, 39),
     itemscolor = Color3.fromRGB(200, 200, 200),
     itemscolor2 = Color3.fromRGB(210, 210, 210)
 }
+
+local cursor = Drawing.new("Image")
+cursor.Data = game:HttpGet("https://t0.rbxcdn.com/42f66da98c40252ee151326a82aab51f")
+cursor.Size = Vector2.new(64, 64)
+cursor.Visible = uis.MouseEnabled
+cursor.Rounding = 0
+cursor.Position = Vector2.new(mouse.X - 32, mouse.Y + 6)
+uis.InputChanged:Connect(function(input)
+    if uis.MouseEnabled then
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            cursor.Position = Vector2.new(input.Position.X - 32, input.Position.Y + 7)
+        end
+    end
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    uis.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.ForceHide
+    cursor.Visible = uis.MouseEnabled and (uis.MouseIconEnabled or game:GetService("GuiService").MenuIsOpen)
+end)
 
 function library:CreateWatermark(name, position)
     local gamename = marketplaceservice:GetProductInfo(game.PlaceId).Name
@@ -196,6 +219,7 @@ function library:CreateWindow(name, size, hidebutton)
 
     window.Main = Instance.new("ScreenGui", coregui)
     window.Main.Name = name
+    window.Main.DisplayOrder = 15
     if syn then
         syn.protect_gui(window.Main)
     end
@@ -233,11 +257,13 @@ function library:CreateWindow(name, size, hidebutton)
         end
     end
 
-    window.Frame = Instance.new("Frame", window.Main)
+    window.Frame = Instance.new("TextButton", window.Main)
     window.Frame.Name = "main"
     window.Frame.Position = UDim2.fromScale(0.5, 0.5)
     window.Frame.BorderSizePixel = 0
     window.Frame.Size = window.size
+    window.Frame.AutoButtonColor = false
+    window.Frame.Text = ""
     window.Frame.BackgroundColor3 = window.theme.backgroundcolor
     window.Frame.AnchorPoint = Vector2.new(0.5, 0.5)
     updateevent.Event:Connect(function(theme)
@@ -249,6 +275,16 @@ function library:CreateWindow(name, size, hidebutton)
             window.Frame.Visible = not window.Frame.Visible
         end
     end)
+
+    local function checkIfGuiInFront(Pos)
+        local objects = coregui:GetGuiObjectsAtPosition(Pos.X, Pos.Y)
+        for i,v in pairs(objects) do 
+            if not string.find(v:GetFullName(), window.name) then 
+                table.remove(objects, i)
+            end 
+        end
+        return (#objects ~= 0 and objects[1].AbsolutePosition ~= Pos)
+    end
 
     window.BlackOutline = Instance.new("Frame", window.Frame)
     window.BlackOutline.Name = "outline"
@@ -309,12 +345,12 @@ function library:CreateWindow(name, size, hidebutton)
     window.NameLabel.Name = "title"
     window.NameLabel.Position = UDim2.fromOffset(4, -2)
     window.NameLabel.BackgroundTransparency = 1
-    window.NameLabel.Size = UDim2.fromOffset(194, window.TopBar.AbsoluteSize.Y / 2 - 2)
-    window.NameLabel.TextSize = window.theme.fontsize
+    window.NameLabel.Size = UDim2.fromOffset(190, window.TopBar.AbsoluteSize.Y / 2 - 2)
+    window.NameLabel.TextSize = window.theme.titlesize
     updateevent.Event:Connect(function(theme)
         window.NameLabel.TextColor3 = theme.toptextcolor
         window.NameLabel.Font = theme.font
-        window.NameLabel.TextSize = theme.fontsize
+        window.NameLabel.TextSize = theme.titlesize
     end)
 
     window.Line2 = Instance.new("Frame", window.TopBar)
@@ -415,7 +451,6 @@ function library:CreateWindow(name, size, hidebutton)
         tab.Left.BorderSizePixel = 0
         tab.Left.Size = UDim2.fromOffset(window.size.X.Offset / 2, window.size.Y.Offset - (window.TopBar.AbsoluteSize.Y + 1))
         tab.Left.BackgroundTransparency = 1
-        tab.Left.Active = false
         tab.Left.Visible = false
         tab.Left.ScrollBarThickness = 0
         tab.Left.ScrollingDirection = "Y"
@@ -435,7 +470,6 @@ function library:CreateWindow(name, size, hidebutton)
         tab.Right.Name = "rightside"
         tab.Right.ScrollBarThickness = 0
         tab.Right.ScrollingDirection = "Y"
-        tab.Right.Active = false
         tab.Right.Visible = false
         tab.Right.BorderSizePixel = 0
         tab.Right.Size = UDim2.fromOffset(window.size.X.Offset / 2, window.size.Y.Offset - (window.TopBar.AbsoluteSize.Y + 1))
@@ -599,14 +633,14 @@ function library:CreateWindow(name, size, hidebutton)
             sector.ListLayout.Padding = UDim.new(0, 12)
 
             sector.ListPadding = Instance.new("UIPadding", sector.Items)
-            sector.ListPadding.PaddingTop = UDim.new(0, 12)
+            sector.ListPadding.PaddingTop = UDim.new(0, 15)
             sector.ListPadding.PaddingLeft = UDim.new(0, 6)
             sector.ListPadding.PaddingRight = UDim.new(0, 6)
 
             table.insert(sector.side:lower() == "left" and tab.SectorsLeft or tab.SectorsRight, sector)
 
             function sector:FixSize()
-                sector.Main.Size = UDim2.fromOffset(window.size.X.Offset / 2 - 17, sector.ListLayout.AbsoluteContentSize.Y + 19)
+                sector.Main.Size = UDim2.fromOffset(window.size.X.Offset / 2 - 17, sector.ListLayout.AbsoluteContentSize.Y + 22)
                 local sizeleft, sizeright = 0, 0
                 for i,v in pairs(tab.SectorsLeft) do
                     sizeleft = sizeleft + v.Main.AbsoluteSize.Y
@@ -692,8 +726,10 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 button.BlackOutline2.MouseEnter:Connect(function()
+                    if checkIfGuiInFront(button.Label.AbsolutePosition) then return end
                     button.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                 end)
+
                 button.BlackOutline2.MouseLeave:Connect(function()
                     button.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
                 end)
@@ -730,11 +766,12 @@ function library:CreateWindow(name, size, hidebutton)
                 return label
             end
             
-            function sector:AddToggle(text, default, callback)
+            function sector:AddToggle(text, default, callback, flag)
                 local toggle = { }
                 toggle.text = text or ""
                 toggle.default = default or false
                 toggle.callback = callback or function(value) end
+                toggle.flag = flag or text or ""
                 
                 toggle.value = toggle.default
 
@@ -838,6 +875,8 @@ function library:CreateWindow(name, size, hidebutton)
                 toggle.ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
                 toggle.ListLayout.Padding = UDim.new(0.04, 6)
 
+                library.flags[toggle.flag] = false
+
                 function toggle:Set(value) 
                     if value then
                         toggle.Label.TextColor3 = window.theme.itemscolor2
@@ -847,18 +886,20 @@ function library:CreateWindow(name, size, hidebutton)
 
                     toggle.value = value
                     toggle.CheckedFrame.Visible = value
-                    pcall(toggle.callback, value) 
+                    library.flags[toggle.flag] = toggle.value
+                    pcall(toggle.callback, value)
                 end
                 function toggle:Get() 
                     return toggle.value
                 end
                 toggle:Set(toggle.default)
 
-                function toggle:AddKeybind(default)
+                function toggle:AddKeybind(default, flag)
                     local keybind = { }
 
                     keybind.default = default or "None"
                     keybind.value = keybind.default
+                    keybind.flag = flag or ( (toggle.text or "") .. tostring(#toggle.Items:GetChildren()))
 
                     local shorter_keycodes = {
                         ["LeftShift"] = "LSHIFT",
@@ -896,6 +937,18 @@ function library:CreateWindow(name, size, hidebutton)
                         end
                     end)
 
+                    library.flags[keybind.flag] = "None"
+
+                    function keybind:Set(key)
+                        keybind.Main.Text = "[" .. (shorter_keycodes[key.Name] or key.Name) .. "]"
+                        keybind.value = key
+                        library.flags[keybind.flag] = keybind.value
+                    end
+
+                    function keybind:Get()
+                        return keybind.value
+                    end
+
                     uis.InputBegan:Connect(function(input, gameProcessed)
                         if not gameProcessed then
                             if keybind.Main.Text == "[...]" then
@@ -903,9 +956,11 @@ function library:CreateWindow(name, size, hidebutton)
                                 if input.UserInputType == Enum.UserInputType.Keyboard then
                                     keybind.Main.Text = "[" .. (shorter_keycodes[input.KeyCode.Name] or input.KeyCode.Name) .. "]"
                                     keybind.value = input.KeyCode
+                                    library.flags[keybind.flag] = keybind.value
                                 else
                                     keybind.Main.Text = "[None]"
                                     keybind.value = "None"
+                                    library.flags[keybind.flag] = keybind.value
                                 end
                             else
                                 if keybind.value ~= "None" and input.KeyCode == keybind.value then
@@ -915,10 +970,11 @@ function library:CreateWindow(name, size, hidebutton)
                         end
                     end)
 
+                    table.insert(library.items, keybind)
                     return keybind
                 end
 
-                function toggle:AddDropdown(items, default, multichoice, callback)
+                function toggle:AddDropdown(items, default, multichoice, callback, flag)
                     local dropdown = { }
 
                     dropdown.defaultitems = items or { }
@@ -926,6 +982,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.callback = callback or function() end
                     dropdown.multichoice = multichoice or false
                     dropdown.values = { }
+                    dropdown.flag = flag or ( (toggle.text or "") .. tostring(#toggle.Items:GetChildren()))
     
                     dropdown.Main = Instance.new("TextButton", sector.Items)
                     dropdown.Main.Name = "dropdown"
@@ -962,19 +1019,18 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
                     updateevent.Event:Connect(function(theme)
                         dropdown.SelectedLabel.Font = theme.font
-                    end)    
+                    end)  
 
                     dropdown.Nav = Instance.new("ImageButton", dropdown.Main)
                     dropdown.Nav.Name = "navigation"
                     dropdown.Nav.BackgroundTransparency = 1
                     dropdown.Nav.LayoutOrder = 10
-                    dropdown.Nav.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 30, 3)
-                    dropdown.Nav.Rotation = 180
+                    dropdown.Nav.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 26, 5)
+                    dropdown.Nav.Rotation = 90
                     dropdown.Nav.ZIndex = 5
-                    dropdown.Nav.Size = UDim2.fromOffset(13, 9)
+                    dropdown.Nav.Size = UDim2.fromOffset(8, 8)
                     dropdown.Nav.Image = "rbxassetid://4918373417"
-                    dropdown.Nav.ImageRectOffset = Vector2.new(524, 764)
-                    dropdown.Nav.ImageRectSize = Vector2.new(36, 36)
+                    dropdown.Nav.ImageColor3 = Color3.fromRGB(210, 210, 210)
     
                     dropdown.BlackOutline2 = Instance.new("Frame", dropdown.Main)
                     dropdown.BlackOutline2.Name = "blackline"
@@ -999,7 +1055,7 @@ function library:CreateWindow(name, size, hidebutton)
                     end)
     
                     dropdown.BlackOutline = Instance.new("Frame", dropdown.Main)
-                    dropdown.BlackOutline.Name = "blackline"
+                    dropdown.BlackOutline.Name = "blackline444"
                     dropdown.BlackOutline.ZIndex = 4
                     dropdown.BlackOutline.Size = dropdown.Main.Size + UDim2.fromOffset(2, 2)
                     dropdown.BlackOutline.BorderSizePixel = 0
@@ -1018,6 +1074,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.ItemsFrame.ZIndex = 8
                     dropdown.ItemsFrame.ScrollingDirection = "Y"
                     dropdown.ItemsFrame.Visible = false
+                    dropdown.ItemsFrame.Size = UDim2.new(0, 0, 0, 0)
                     dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.Main.AbsoluteSize.X, 0)
     
                     dropdown.ListLayout = Instance.new("UIListLayout", dropdown.ItemsFrame)
@@ -1031,7 +1088,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.ListPadding.PaddingRight = UDim.new(0, 2)
     
                     dropdown.BlackOutline2Items = Instance.new("Frame", dropdown.Main)
-                    dropdown.BlackOutline2Items.Name = "blackline"
+                    dropdown.BlackOutline2Items.Name = "blackline3"
                     dropdown.BlackOutline2Items.ZIndex = 7
                     dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
                     dropdown.BlackOutline2Items.BorderSizePixel = 0
@@ -1043,7 +1100,7 @@ function library:CreateWindow(name, size, hidebutton)
                     end)
                     
                     dropdown.OutlineItems = Instance.new("Frame", dropdown.Main)
-                    dropdown.OutlineItems.Name = "blackline"
+                    dropdown.OutlineItems.Name = "blackline8"
                     dropdown.OutlineItems.ZIndex = 7
                     dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
                     dropdown.OutlineItems.BorderSizePixel = 0
@@ -1055,7 +1112,7 @@ function library:CreateWindow(name, size, hidebutton)
                     end)
     
                     dropdown.BlackOutlineItems = Instance.new("Frame", dropdown.Main)
-                    dropdown.BlackOutlineItems.Name = "blackline"
+                    dropdown.BlackOutlineItems.Name = "blackline3"
                     dropdown.BlackOutlineItems.ZIndex = 7
                     dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(-2, -2)
                     dropdown.BlackOutlineItems.BorderSizePixel = 0
@@ -1073,9 +1130,10 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.IgnoreBackButtons.Size = UDim2.new(0, 0, 0, 0)
                     dropdown.IgnoreBackButtons.ZIndex = 7
                     dropdown.IgnoreBackButtons.Text = ""
-                    dropdown.IgnoreBackButtons.Active = false
                     dropdown.IgnoreBackButtons.Visible = false
                     dropdown.IgnoreBackButtons.AutoButtonColor = false
+
+                    library.flags[dropdown.flag] = ""
     
                     function dropdown:isSelected(item)
                         for i, v in pairs(dropdown.values) do
@@ -1103,6 +1161,8 @@ function library:CreateWindow(name, size, hidebutton)
                             dropdown.values = { value }
                             pcall(dropdown.callback, value)
                         end
+
+                        library.flags[dropdown.flag] = value
                     end
     
                     function dropdown:Get()
@@ -1143,7 +1203,7 @@ function library:CreateWindow(name, size, hidebutton)
     
                                 return
                             else
-                                dropdown.Nav.Rotation = 180
+                                dropdown.Nav.Rotation = 90
                                 dropdown.ItemsFrame.Visible = false
                                 dropdown.ItemsFrame.Active = false
                                 dropdown.OutlineItems.Visible = false
@@ -1209,21 +1269,23 @@ function library:CreateWindow(name, size, hidebutton)
                     end
     
                     local MouseButton1Down = function()
-                        if dropdown.Nav.Rotation == 180 then
-                            dropdown.ItemsFrame.ScrollingEnabled = true
-                            sector.Main.Parent.ScrollingEnabled = false
-                            tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Rotation = 0 }):Play()
-                            dropdown.ItemsFrame.Visible = true
-                            dropdown.ItemsFrame.Active = true
-                            dropdown.IgnoreBackButtons.Visible = true
-                            dropdown.IgnoreBackButtons.Active = true
-                            dropdown.OutlineItems.Visible = true
-                            dropdown.BlackOutlineItems.Visible = true
-                            dropdown.BlackOutline2Items.Visible = true
+                        if dropdown.Nav.Rotation == 90 then
+                            tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Rotation = -90 }):Play()
+                            if dropdown.items and #dropdown.items ~= 0 then
+                                dropdown.ItemsFrame.ScrollingEnabled = true
+                                sector.Main.Parent.ScrollingEnabled = false
+                                dropdown.ItemsFrame.Visible = true
+                                dropdown.ItemsFrame.Active = true
+                                dropdown.IgnoreBackButtons.Visible = true
+                                dropdown.IgnoreBackButtons.Active = true
+                                dropdown.OutlineItems.Visible = true
+                                dropdown.BlackOutlineItems.Visible = true
+                                dropdown.BlackOutline2Items.Visible = true
+                            end
                         else
+                            tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Rotation = 90 }):Play()
                             dropdown.ItemsFrame.ScrollingEnabled = false
                             sector.Main.Parent.ScrollingEnabled = true
-                            tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Rotation = 180 }):Play()
                             dropdown.ItemsFrame.Visible = false
                             dropdown.ItemsFrame.Active = false
                             dropdown.IgnoreBackButtons.Visible = false
@@ -1238,6 +1300,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.Nav.MouseButton1Down:Connect(MouseButton1Down)
     
                     dropdown.BlackOutline2.MouseEnter:Connect(function()
+                        if checkIfGuiInFront(dropdown.Main.AbsolutePosition) then return end
                         dropdown.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                     end)
                     dropdown.BlackOutline2.MouseLeave:Connect(function()
@@ -1245,15 +1308,17 @@ function library:CreateWindow(name, size, hidebutton)
                     end)
     
                     sector:FixSize()
+                    table.insert(library.items, dropdown)
                     return dropdown
                 end
 
-                function toggle:AddColorpicker(default, callback)
+                function toggle:AddColorpicker(default, callback, flag)
                     local colorpicker = { }
 
                     colorpicker.callback = callback or function() end
                     colorpicker.default = default or Color3.fromRGB(255, 255, 255)
                     colorpicker.value = colorpicker.default
+                    colorpicker.flag = flag or ( (toggle.text or "") .. tostring(#toggle.Items:GetChildren()))
 
                     colorpicker.Main = Instance.new("Frame", toggle.Items)
                     colorpicker.Main.ZIndex = 6
@@ -1305,6 +1370,7 @@ function library:CreateWindow(name, size, hidebutton)
                     end)
 
                     colorpicker.BlackOutline2.MouseEnter:Connect(function()
+                        if checkIfGuiInFront(colorpicker.Main.AbsolutePosition) then return end
                         colorpicker.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                     end)
                     colorpicker.BlackOutline2.MouseLeave:Connect(function()
@@ -1408,6 +1474,8 @@ function library:CreateWindow(name, size, hidebutton)
                     colorpicker.pointer.Size = UDim2.new(0,2,0,10)
                     colorpicker.pointer.BorderColor3 = Color3.fromRGB(255, 255, 255)
 
+                    library.flags[colorpicker.flag] = Color3.new()
+
                     function colorpicker:RefreshHue()
                         local x = (mouse.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X
                         local y = (mouse.Y - colorpicker.hue.AbsolutePosition.Y) / colorpicker.hue.AbsoluteSize.Y
@@ -1429,7 +1497,7 @@ function library:CreateWindow(name, size, hidebutton)
                     function colorpicker:Set(value)
                         local color = Color3.new(math.clamp(value.r, 0, 1), math.clamp(value.g, 0, 1), math.clamp(value.b, 0, 1))
                         colorpicker.value = color
-
+                        library.flags[colorpicker.flag] = color
                         local clr = Color3.new(math.clamp(color.R / 1.7, 0, 1), math.clamp(color.G / 1.7, 0, 1), math.clamp(color.B / 1.7, 0, 1))
                         colorpicker.Gradient.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0.00, color), ColorSequenceKeypoint.new(1.00, clr) })
                         pcall(colorpicker.callback, color)
@@ -1502,11 +1570,11 @@ function library:CreateWindow(name, size, hidebutton)
                     colorpicker.Main.InputBegan:Connect(inputBegan)
                     colorpicker.Outline.InputBegan:Connect(inputBegan)
                     colorpicker.BlackOutline2.InputBegan:Connect(inputBegan)
-
+                    table.insert(library.items, colorpicker)
                     return colorpicker
                 end
 
-                function toggle:AddSlider(min, default, max, decimals, callback)
+                function toggle:AddSlider(min, default, max, decimals, callback, flag)
                     local slider = { }
                     slider.text = text or ""
                     slider.callback = callback or function(value) end
@@ -1514,6 +1582,7 @@ function library:CreateWindow(name, size, hidebutton)
                     slider.max = max or 100
                     slider.decimals = decimals or 1
                     slider.default = default or slider.min
+                    slider.flag = flag or ( (toggle.text or "") .. tostring(#toggle.Items:GetChildren()))
     
                     slider.value = slider.default
                     local dragging = false
@@ -1596,12 +1665,14 @@ function library:CreateWindow(name, size, hidebutton)
                     end)
     
                     slider.BlackOutline2.MouseEnter:Connect(function()
+                        if checkIfGuiInFront(slider.Main.AbsolutePosition) then return end
                         slider.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                     end)
                     slider.BlackOutline2.MouseLeave:Connect(function()
                         slider.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
                     end)
     
+                    library.flags[slider.flag] = 0
     
                     function slider:Get()
                         return slider.value
@@ -1610,7 +1681,7 @@ function library:CreateWindow(name, size, hidebutton)
                     function slider:Set(value)
                         slider.value = math.clamp(math.round(value * slider.decimals) / slider.decimals, slider.min, slider.max)
                         local percent = 1 - ((slider.max - slider.value) / (slider.max - slider.min))
-    
+                        library.flags[slider.flag] = slider.value
                         slider.SlideBar:TweenSize(UDim2.fromOffset(percent * slider.Main.AbsoluteSize.X, slider.Main.AbsoluteSize.Y), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.05)
                         slider.InputLabel.Text = slider.value
                         pcall(slider.callback, slider.value)
@@ -1658,6 +1729,7 @@ function library:CreateWindow(name, size, hidebutton)
                     end)
     
                     sector:FixSize()
+                    table.insert(library.items, slider)
                     return slider
                 end
 
@@ -1671,6 +1743,7 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 local MouseEnter = function()
+                    if checkIfGuiInFront(toggle.Main.AbsolutePosition) then return end
                     toggle.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                 end
                 local MouseLeave = function()
@@ -1683,16 +1756,36 @@ function library:CreateWindow(name, size, hidebutton)
                 toggle.BlackOutline2.MouseLeave:Connect(MouseLeave)
 
                 sector:FixSize()
+                table.insert(library.items, toggle)
                 return toggle
             end
-            
-            function sector:AddTextbox(text, default, callback)
+
+            function sector:AddTextbox(text, placeholder, default, callback, flag)
                 local textbox = { }
                 textbox.text = text or ""
+                textbox.placeholder = placeholder or ""
                 textbox.callback = callback or function() end
                 textbox.default = default
-
                 textbox.value = ""
+                textbox.flag = flag or text or ""
+
+                textbox.Label = Instance.new("TextButton", sector.Items)
+                textbox.Label.Name = "Label"
+                textbox.Label.AutoButtonColor = false
+                textbox.Label.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                textbox.Label.BackgroundTransparency = 1
+                textbox.Label.Position = UDim2.fromOffset(sector.Main.Size.X.Offset, 0)
+                textbox.Label.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 0)
+                textbox.Label.Font = window.theme.font
+                textbox.Label.ZIndex = 5
+                textbox.Label.Text = textbox.text
+                textbox.Label.TextColor3 = window.theme.itemscolor
+                textbox.Label.TextSize = 15
+                textbox.Label.TextStrokeTransparency = 1
+                textbox.Label.TextXAlignment = Enum.TextXAlignment.Left
+                updateevent.Event:Connect(function(theme)
+                    textbox.Label.Font = theme.font
+                end)
 
                 textbox.Holder = Instance.new("Frame", sector.Items)
                 textbox.Holder.Name = "holder"
@@ -1706,7 +1799,7 @@ function library:CreateWindow(name, size, hidebutton)
                 textbox.Gradient.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0.00, Color3.fromRGB(49, 49, 49)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(39, 39, 39)) })
 
                 textbox.Main = Instance.new("TextBox", textbox.Holder)
-                textbox.Main.PlaceholderText = textbox.text
+                textbox.Main.PlaceholderText = textbox.placeholder
                 textbox.Main.PlaceholderColor3 = Color3.fromRGB(190, 190, 190)
                 textbox.Main.Text = ""
                 textbox.Main.BackgroundTransparency = 1
@@ -1721,9 +1814,14 @@ function library:CreateWindow(name, size, hidebutton)
                 textbox.Main.TextColor3 = Color3.fromRGB(255, 255, 255)
                 textbox.Main.BorderSizePixel = 0
                 textbox.Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                textbox.Main.TextXAlignment = Enum.TextXAlignment.Left
+
+                library.flags[textbox.flag] = ""
+
                 function textbox:Set(text)
                     textbox.value = text
                     textbox.Main.Text = text
+                    library.flags[textbox.flag] = text
                     pcall(textbox.callback, text)
                 end
                 updateevent.Event:Connect(function(theme)
@@ -1776,6 +1874,7 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 textbox.BlackOutline2.MouseEnter:Connect(function()
+                    if checkIfGuiInFront(textbox.Main.AbsolutePosition) then return end
                     textbox.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                 end)
                 textbox.BlackOutline2.MouseLeave:Connect(function()
@@ -1783,10 +1882,11 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 sector:FixSize()
+                table.insert(library.items, textbox)
                 return textbox
             end
             
-            function sector:AddSlider(text, min, default, max, decimals, callback)
+            function sector:AddSlider(text, min, default, max, decimals, callback, flag)
                 local slider = { }
                 slider.text = text or ""
                 slider.callback = callback or function(value) end
@@ -1794,6 +1894,7 @@ function library:CreateWindow(name, size, hidebutton)
                 slider.max = max or 100
                 slider.decimals = decimals or 1
                 slider.default = default or slider.min
+                slider.flag = flag or text or ""
 
                 slider.value = slider.default
                 local dragging = false
@@ -1903,12 +2004,14 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 slider.BlackOutline2.MouseEnter:Connect(function()
+                    if checkIfGuiInFront(slider.MainBack.AbsolutePosition) then return end
                     slider.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                 end)
                 slider.BlackOutline2.MouseLeave:Connect(function()
                     slider.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
                 end)
 
+                library.flags[slider.flag] = 0
 
                 function slider:Get()
                     return slider.value
@@ -1917,7 +2020,7 @@ function library:CreateWindow(name, size, hidebutton)
                 function slider:Set(value)
                     slider.value = math.clamp(math.round(value * slider.decimals) / slider.decimals, slider.min, slider.max)
                     local percent = 1 - ((slider.max - slider.value) / (slider.max - slider.min))
-
+                    library.flags[slider.flag] = slider.value
                     slider.SlideBar:TweenSize(UDim2.fromOffset(percent * slider.Main.AbsoluteSize.X, slider.Main.AbsoluteSize.Y), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.05)
 					slider.InputLabel.Text = slider.value
 					pcall(slider.callback, slider.value)
@@ -1976,16 +2079,18 @@ function library:CreateWindow(name, size, hidebutton)
 				end)
 
                 sector:FixSize()
+                table.insert(library.items, slider)
                 return slider
             end
 
-            function sector:AddColorpicker(text, default, callback)
+            function sector:AddColorpicker(text, default, callback, flag)
                 local colorpicker = { }
 
                 colorpicker.text = text or ""
                 colorpicker.callback = callback or function() end
                 colorpicker.default = default or Color3.fromRGB(255, 255, 255)
                 colorpicker.value = colorpicker.default
+                colorpicker.flag = flag or text or ""
 
                 colorpicker.Label = Instance.new("TextLabel", sector.Items)
                 colorpicker.Label.BackgroundTransparency = 1
@@ -2049,6 +2154,7 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 colorpicker.BlackOutline2.MouseEnter:Connect(function()
+                    if checkIfGuiInFront(colorpicker.BlackOutline2.AbsolutePosition) then return end
                     colorpicker.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                 end)
                 colorpicker.BlackOutline2.MouseLeave:Connect(function()
@@ -2152,6 +2258,8 @@ function library:CreateWindow(name, size, hidebutton)
                 colorpicker.pointer.Size = UDim2.new(0,2,0,10)
                 colorpicker.pointer.BorderColor3 = Color3.fromRGB(255, 255, 255)
 
+                library.flags[colorpicker.flag] = Color3.new()
+
                 function colorpicker:RefreshSelector()
                     local pos = math.clamp((mouse.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X, 0, 1)
                     colorpicker.color = 1 - pos
@@ -2169,7 +2277,7 @@ function library:CreateWindow(name, size, hidebutton)
                 function colorpicker:Set(value)
                     local color = Color3.new(math.clamp(value.r, 0, 1), math.clamp(value.g, 0, 1), math.clamp(value.b, 0, 1))
                     colorpicker.value = color
-
+                    library.flags[colorpicker.flag] = color
                     local clr = Color3.new(math.clamp(color.R / 1.7, 0, 1), math.clamp(color.G / 1.7, 0, 1), math.clamp(color.B / 1.7, 0, 1))
                     colorpicker.Gradient.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0.00, color), ColorSequenceKeypoint.new(1.00, clr) })
                     pcall(colorpicker.callback, color)
@@ -2178,6 +2286,340 @@ function library:CreateWindow(name, size, hidebutton)
                     return colorpicker.value
                 end
                 colorpicker:Set(colorpicker.default)
+
+                function colorpicker:AddDropdown(items, default, multichoice, callback, flag)
+                    local dropdown = { }
+
+                    dropdown.defaultitems = items or { }
+                    dropdown.default = default
+                    dropdown.callback = callback or function() end
+                    dropdown.multichoice = multichoice or false
+                    dropdown.values = { }
+                    dropdown.flag = flag or ( (colorpicker.text or "") .. tostring(#sector.Items:GetChildren()))
+    
+                    dropdown.Main = Instance.new("TextButton", sector.Items)
+                    dropdown.Main.Name = "dropdown"
+                    dropdown.Main.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    dropdown.Main.BorderSizePixel = 0
+                    dropdown.Main.Size = UDim2.fromOffset(sector.Main.Size.X.Offset - 12, 16)
+                    dropdown.Main.Position = UDim2.fromOffset(0, 0)
+                    dropdown.Main.ZIndex = 5
+                    dropdown.Main.AutoButtonColor = false
+                    dropdown.Main.Font = window.theme.font
+                    dropdown.Main.Text = ""
+                    dropdown.Main.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    dropdown.Main.TextSize = 15
+                    dropdown.Main.TextXAlignment = Enum.TextXAlignment.Left
+                    updateevent.Event:Connect(function(theme)
+                        dropdown.Main.Font = theme.font
+                    end)
+    
+                    dropdown.Gradient = Instance.new("UIGradient", dropdown.Main)
+                    dropdown.Gradient.Rotation = 90
+                    dropdown.Gradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, Color3.fromRGB(49, 49, 49)), ColorSequenceKeypoint.new(1.00, Color3.fromRGB(39, 39, 39))}
+    
+                    dropdown.SelectedLabel = Instance.new("TextLabel", dropdown.Main)
+                    dropdown.SelectedLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    dropdown.SelectedLabel.BackgroundTransparency = 1
+                    dropdown.SelectedLabel.Position = UDim2.fromOffset(5, 2)
+                    dropdown.SelectedLabel.Size = UDim2.fromOffset(130, 13)
+                    dropdown.SelectedLabel.Font = window.theme.font
+                    dropdown.SelectedLabel.Text = colorpicker.text
+                    dropdown.SelectedLabel.ZIndex = 5
+                    dropdown.SelectedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    dropdown.SelectedLabel.TextSize = 15
+                    dropdown.SelectedLabel.TextStrokeTransparency = 1
+                    dropdown.SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+                    updateevent.Event:Connect(function(theme)
+                        dropdown.SelectedLabel.Font = theme.font
+                    end)
+
+                    dropdown.Nav = Instance.new("ImageButton", dropdown.Main)
+                    dropdown.Nav.Name = "navigation"
+                    dropdown.Nav.BackgroundTransparency = 1
+                    dropdown.Nav.LayoutOrder = 10
+                    dropdown.Nav.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 26, 5)
+                    dropdown.Nav.Rotation = 90
+                    dropdown.Nav.ZIndex = 5
+                    dropdown.Nav.Size = UDim2.fromOffset(8, 8)
+                    dropdown.Nav.Image = "rbxassetid://4918373417"
+                    dropdown.Nav.ImageColor3 = Color3.fromRGB(210, 210, 210)
+    
+                    dropdown.BlackOutline2 = Instance.new("Frame", dropdown.Main)
+                    dropdown.BlackOutline2.Name = "blackline"
+                    dropdown.BlackOutline2.ZIndex = 4
+                    dropdown.BlackOutline2.Size = dropdown.Main.Size + UDim2.fromOffset(6, 6)
+                    dropdown.BlackOutline2.BorderSizePixel = 0
+                    dropdown.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+                    dropdown.BlackOutline2.Position = UDim2.fromOffset(-3, -3)
+                    updateevent.Event:Connect(function(theme)
+                        dropdown.BlackOutline2.BackgroundColor3 = theme.outlinecolor2
+                    end)
+    
+                    dropdown.Outline = Instance.new("Frame", dropdown.Main)
+                    dropdown.Outline.Name = "blackline"
+                    dropdown.Outline.ZIndex = 4
+                    dropdown.Outline.Size = dropdown.Main.Size + UDim2.fromOffset(4, 4)
+                    dropdown.Outline.BorderSizePixel = 0
+                    dropdown.Outline.BackgroundColor3 = window.theme.outlinecolor
+                    dropdown.Outline.Position = UDim2.fromOffset(-2, -2)
+                    updateevent.Event:Connect(function(theme)
+                        dropdown.Outline.BackgroundColor3 = theme.outlinecolor
+                    end)
+    
+                    dropdown.BlackOutline = Instance.new("Frame", dropdown.Main)
+                    dropdown.BlackOutline.Name = "blackline"
+                    dropdown.BlackOutline.ZIndex = 4
+                    dropdown.BlackOutline.Size = dropdown.Main.Size + UDim2.fromOffset(2, 2)
+                    dropdown.BlackOutline.BorderSizePixel = 0
+                    dropdown.BlackOutline.BackgroundColor3 = window.theme.outlinecolor2
+                    dropdown.BlackOutline.Position = UDim2.fromOffset(-1, -1)
+                    updateevent.Event:Connect(function(theme)
+                        dropdown.BlackOutline.BackgroundColor3 = theme.outlinecolor2
+                    end)
+    
+                    dropdown.ItemsFrame = Instance.new("ScrollingFrame", dropdown.Main)
+                    dropdown.ItemsFrame.Name = "itemsframe"
+                    dropdown.ItemsFrame.BorderSizePixel = 0
+                    dropdown.ItemsFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                    dropdown.ItemsFrame.Position = UDim2.fromOffset(0, dropdown.Main.Size.Y.Offset + 8)
+                    dropdown.ItemsFrame.ScrollBarThickness = 2
+                    dropdown.ItemsFrame.ZIndex = 8
+                    dropdown.ItemsFrame.ScrollingDirection = "Y"
+                    dropdown.ItemsFrame.Visible = false
+                    dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.Main.AbsoluteSize.X, 0)
+    
+                    dropdown.ListLayout = Instance.new("UIListLayout", dropdown.ItemsFrame)
+                    dropdown.ListLayout.FillDirection = Enum.FillDirection.Vertical
+                    dropdown.ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    
+                    dropdown.ListPadding = Instance.new("UIPadding", dropdown.ItemsFrame)
+                    dropdown.ListPadding.PaddingTop = UDim.new(0, 2)
+                    dropdown.ListPadding.PaddingBottom = UDim.new(0, 2)
+                    dropdown.ListPadding.PaddingLeft = UDim.new(0, 2)
+                    dropdown.ListPadding.PaddingRight = UDim.new(0, 2)
+    
+                    dropdown.BlackOutline2Items = Instance.new("Frame", dropdown.Main)
+                    dropdown.BlackOutline2Items.Name = "blackline"
+                    dropdown.BlackOutline2Items.ZIndex = 7
+                    dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+                    dropdown.BlackOutline2Items.BorderSizePixel = 0
+                    dropdown.BlackOutline2Items.BackgroundColor3 = window.theme.outlinecolor2
+                    dropdown.BlackOutline2Items.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-3, -3)
+                    dropdown.BlackOutline2Items.Visible = false
+                    updateevent.Event:Connect(function(theme)
+                        dropdown.BlackOutline2Items.BackgroundColor3 = theme.outlinecolor2
+                    end)
+                    
+                    dropdown.OutlineItems = Instance.new("Frame", dropdown.Main)
+                    dropdown.OutlineItems.Name = "blackline"
+                    dropdown.OutlineItems.ZIndex = 7
+                    dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+                    dropdown.OutlineItems.BorderSizePixel = 0
+                    dropdown.OutlineItems.BackgroundColor3 = window.theme.outlinecolor
+                    dropdown.OutlineItems.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-2, -2)
+                    dropdown.OutlineItems.Visible = false
+                    updateevent.Event:Connect(function(theme)
+                        dropdown.OutlineItems.BackgroundColor3 = theme.outlinecolor
+                    end)
+    
+                    dropdown.BlackOutlineItems = Instance.new("Frame", dropdown.Main)
+                    dropdown.BlackOutlineItems.Name = "blackline"
+                    dropdown.BlackOutlineItems.ZIndex = 7
+                    dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(-2, -2)
+                    dropdown.BlackOutlineItems.BorderSizePixel = 0
+                    dropdown.BlackOutlineItems.BackgroundColor3 = window.theme.outlinecolor2
+                    dropdown.BlackOutlineItems.Position = dropdown.ItemsFrame.Position + UDim2.fromOffset(-1, -1)
+                    dropdown.BlackOutlineItems.Visible = false
+                    updateevent.Event:Connect(function(theme)
+                        dropdown.BlackOutlineItems.BackgroundColor3 = theme.outlinecolor2
+                    end)
+    
+                    dropdown.IgnoreBackButtons = Instance.new("TextButton", dropdown.Main)
+                    dropdown.IgnoreBackButtons.BackgroundTransparency = 1
+                    dropdown.IgnoreBackButtons.BorderSizePixel = 0
+                    dropdown.IgnoreBackButtons.Position = UDim2.fromOffset(0, dropdown.Main.Size.Y.Offset + 8)
+                    dropdown.IgnoreBackButtons.Size = UDim2.new(0, 0, 0, 0)
+                    dropdown.IgnoreBackButtons.ZIndex = 7
+                    dropdown.IgnoreBackButtons.Text = ""
+                    dropdown.IgnoreBackButtons.Visible = false
+                    dropdown.IgnoreBackButtons.AutoButtonColor = false
+
+                    library.flags[dropdown.flag] = ""
+    
+                    function dropdown:isSelected(item)
+                        for i, v in pairs(dropdown.values) do
+                            if v == item then
+                                return true
+                            end
+                        end
+                        return false
+                    end
+    
+                    function dropdown:updateText(text)
+                        if #text >= 27 then
+                            text = text:sub(1, 25) .. ".."
+                        end
+                        dropdown.SelectedLabel.Text = text
+                    end
+    
+                    function dropdown:Set(value)
+                        if type(value) == "table" then
+                            dropdown.values = value
+                            dropdown:updateText(table.concat(value, ", "))
+                            pcall(dropdown.callback, value)
+                        else
+                            dropdown:updateText(value)
+                            dropdown.values = { value }
+                            pcall(dropdown.callback, value)
+                        end
+
+                        library.flags[dropdown.flag] = value
+                    end
+    
+                    function dropdown:Get()
+                        return dropdown.multichoice and dropdown.values or dropdown.values[1]
+                    end
+    
+                    dropdown.items = { }
+                    function dropdown:Add(v)
+                        local Item = Instance.new("TextButton", dropdown.ItemsFrame)
+                        Item.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                        Item.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        Item.BorderSizePixel = 0
+                        Item.Position = UDim2.fromOffset(0, 0)
+                        Item.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset - 4, 20)
+                        Item.ZIndex = 9
+                        Item.Text = v
+                        Item.Name = v
+                        Item.AutoButtonColor = false
+                        Item.Font = window.theme.font
+                        Item.TextSize = 15
+                        Item.TextXAlignment = Enum.TextXAlignment.Left
+                        Item.TextStrokeTransparency = 1
+                        dropdown.ItemsFrame.CanvasSize = dropdown.ItemsFrame.CanvasSize + UDim2.fromOffset(0, Item.AbsoluteSize.Y)
+    
+                        Item.MouseButton1Down:Connect(function()
+                            if dropdown.multichoice then
+                                if dropdown:isSelected(v) then
+                                    for i2, v2 in pairs(dropdown.values) do
+                                        if v2 == v then
+                                            table.remove(dropdown.values, i2)
+                                        end
+                                    end
+                                    dropdown:Set(dropdown.values)
+                                else
+                                    table.insert(dropdown.values, v)
+                                    dropdown:Set(dropdown.values)
+                                end
+    
+                                return
+                            else
+                                dropdown.Nav.Rotation = 90
+                                dropdown.ItemsFrame.Visible = false
+                                dropdown.ItemsFrame.Active = false
+                                dropdown.OutlineItems.Visible = false
+                                dropdown.BlackOutlineItems.Visible = false
+                                dropdown.BlackOutline2Items.Visible = false
+                                dropdown.IgnoreBackButtons.Visible = false
+                                dropdown.IgnoreBackButtons.Active = false
+                            end
+    
+                            dropdown:Set(v)
+                            return
+                        end)
+    
+                        runservice.RenderStepped:Connect(function()
+                            if dropdown.multichoice and dropdown:isSelected(v) or dropdown.values[1] == v then
+                                Item.BackgroundColor3 = Color3.fromRGB(64, 64, 64)
+                                Item.TextColor3 = window.theme.accentcolor
+                                Item.Text = " " .. v
+                            else
+                                Item.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                                Item.TextColor3 = Color3.fromRGB(255, 255, 255)
+                                Item.Text = v
+                            end
+                        end)
+    
+                        table.insert(dropdown.items, v)
+                        dropdown.ItemsFrame.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset, math.clamp(#dropdown.items * Item.AbsoluteSize.Y, 20, 156) + 4)
+                        dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.ItemsFrame.AbsoluteSize.X, (#dropdown.items * Item.AbsoluteSize.Y) + 4)
+    
+                        dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+                        dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(2, 2)
+                        dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+                        dropdown.IgnoreBackButtons.Size = dropdown.ItemsFrame.Size
+                    end
+    
+                    function dropdown:Remove(value)
+                        local item = dropdown.ItemsFrame:FindFirstChild(value)
+                        if item then
+                            for i,v in pairs(dropdown.items) do
+                                if v == value then
+                                    table.remove(dropdown.items, i)
+                                end
+                            end
+    
+                            dropdown.ItemsFrame.Size = UDim2.fromOffset(dropdown.Main.Size.X.Offset, math.clamp(#dropdown.items * item.AbsoluteSize.Y, 20, 156) + 4)
+                            dropdown.ItemsFrame.CanvasSize = UDim2.fromOffset(dropdown.ItemsFrame.AbsoluteSize.X, (#dropdown.items * item.AbsoluteSize.Y) + 4)
+        
+                            dropdown.OutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(2, 2)
+                            dropdown.BlackOutlineItems.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(4, 4)
+                            dropdown.BlackOutline2Items.Size = dropdown.ItemsFrame.Size + UDim2.fromOffset(6, 6)
+                            dropdown.IgnoreBackButtons.Size = dropdown.ItemsFrame.Size
+    
+                            item:Remove()
+                        end
+                    end 
+    
+                    for i,v in pairs(dropdown.defaultitems) do
+                        dropdown:Add(v)
+                    end
+    
+                    if dropdown.default then
+                        dropdown:Set(dropdown.default)
+                    end
+    
+                    local MouseButton1Down = function()
+                        if dropdown.Nav.Rotation == 90 then
+                            dropdown.ItemsFrame.ScrollingEnabled = true
+                            sector.Main.Parent.ScrollingEnabled = false
+                            tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Rotation = -90 }):Play()
+                            dropdown.ItemsFrame.Visible = true
+                            dropdown.ItemsFrame.Active = true
+                            dropdown.IgnoreBackButtons.Visible = true
+                            dropdown.IgnoreBackButtons.Active = true
+                            dropdown.OutlineItems.Visible = true
+                            dropdown.BlackOutlineItems.Visible = true
+                            dropdown.BlackOutline2Items.Visible = true
+                        else
+                            dropdown.ItemsFrame.ScrollingEnabled = false
+                            sector.Main.Parent.ScrollingEnabled = true
+                            tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Rotation = 90 }):Play()
+                            dropdown.ItemsFrame.Visible = false
+                            dropdown.ItemsFrame.Active = false
+                            dropdown.IgnoreBackButtons.Visible = false
+                            dropdown.IgnoreBackButtons.Active = false
+                            dropdown.OutlineItems.Visible = false
+                            dropdown.BlackOutlineItems.Visible = false
+                            dropdown.BlackOutline2Items.Visible = false
+                        end
+                    end
+    
+                    dropdown.Main.MouseButton1Down:Connect(MouseButton1Down)
+                    dropdown.Nav.MouseButton1Down:Connect(MouseButton1Down)
+    
+                    dropdown.BlackOutline2.MouseEnter:Connect(function()
+                        dropdown.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
+                    end)
+                    dropdown.BlackOutline2.MouseLeave:Connect(function()
+                        dropdown.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
+                    end)
+    
+                    sector:FixSize()
+                    table.insert(library.items, dropdown)
+                    return dropdown
+                end
 
                 local dragging_selector = false
                 local dragging_hue = false
@@ -2243,16 +2685,18 @@ function library:CreateWindow(name, size, hidebutton)
                 colorpicker.BlackOutline2.InputBegan:Connect(inputBegan)
 
                 sector:FixSize()
+                table.insert(library.items, colorpicker)
                 return colorpicker
             end
 
-            function sector:AddKeybind(text,default,newkeycallback,callback)
+            function sector:AddKeybind(text,default,newkeycallback,callback,flag)
                 local keybind = { }
 
                 keybind.text = text or ""
                 keybind.default = default or "None"
                 keybind.callback = callback or function() end
                 keybind.newkeycallback = newkeycallback or function(key) end
+                keybind.flag = flag or text or ""
 
                 keybind.value = keybind.default
 
@@ -2291,6 +2735,8 @@ function library:CreateWindow(name, size, hidebutton)
                     keybind.Bind.Font = theme.font
                 end)
 
+                library.flags[keybind.flag] = "None"
+
                 local shorter_keycodes = {
                     ["LeftShift"] = "LSHIFT",
                     ["RightShift"] = "RSHIFT",
@@ -2302,12 +2748,12 @@ function library:CreateWindow(name, size, hidebutton)
 
                 function keybind:Set(value)
                     keybind.value = value
-                    keybind.Bind.Text = "[" .. (shorter_keycodes[value.Name or value] or (value.Name or value)) .. "]"
+                    keybind.Bind.Text = "[" .. (shorter_keycodes[value.Name or value] or (value.Name or value)):upper() .. "]"
 
                     local size = textservice:GetTextSize(keybind.Bind.Text, keybind.Bind.TextSize, keybind.Bind.Font, Vector2.new(2000, 2000))
                     keybind.Bind.Size = UDim2.fromOffset(size.X, size.Y)
                     keybind.Bind.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 10 - keybind.Bind.AbsoluteSize.X, 0)
-                    
+                    library.flags[keybind.flag] = value
                     pcall(keybind.newkeycallback, value)
                 end
                 keybind:Set(keybind.default and keybind.default or "None")
@@ -2334,10 +2780,11 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 sector:FixSize()
+                table.insert(library.items, keybind)
                 return keybind
             end
 
-            function sector:AddDropdown(text, items, default, multichoice, callback)
+            function sector:AddDropdown(text, items, default, multichoice, callback, flag)
                 local dropdown = { }
 
                 dropdown.text = text or ""
@@ -2346,6 +2793,7 @@ function library:CreateWindow(name, size, hidebutton)
                 dropdown.callback = callback or function() end
                 dropdown.multichoice = multichoice or false
                 dropdown.values = { }
+                dropdown.flag = flag or text or ""
 
                 dropdown.MainBack = Instance.new("Frame", sector.Items)
                 dropdown.MainBack.Name = "backlabel"
@@ -2366,6 +2814,7 @@ function library:CreateWindow(name, size, hidebutton)
                 dropdown.Label.TextSize = 15
                 dropdown.Label.TextStrokeTransparency = 1
                 dropdown.Label.TextXAlignment = Enum.TextXAlignment.Left
+
                 updateevent.Event:Connect(function(theme)
                     dropdown.Label.Font = theme.font
                     dropdown.Label.TextColor3 = theme.itemscolor
@@ -2412,13 +2861,12 @@ function library:CreateWindow(name, size, hidebutton)
                 dropdown.Nav.Name = "navigation"
                 dropdown.Nav.BackgroundTransparency = 1
                 dropdown.Nav.LayoutOrder = 10
-                dropdown.Nav.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 30, 3)
-                dropdown.Nav.Rotation = 180
+                dropdown.Nav.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 26, 5)
+                dropdown.Nav.Rotation = 90
                 dropdown.Nav.ZIndex = 5
-                dropdown.Nav.Size = UDim2.fromOffset(13, 9)
+                dropdown.Nav.Size = UDim2.fromOffset(8, 8)
                 dropdown.Nav.Image = "rbxassetid://4918373417"
-                dropdown.Nav.ImageRectOffset = Vector2.new(524, 764)
-                dropdown.Nav.ImageRectSize = Vector2.new(36, 36)
+                dropdown.Nav.ImageColor3 = Color3.fromRGB(210, 210, 210)
 
                 dropdown.BlackOutline2 = Instance.new("Frame", dropdown.Main)
                 dropdown.BlackOutline2.Name = "blackline"
@@ -2485,7 +2933,7 @@ function library:CreateWindow(name, size, hidebutton)
                 updateevent.Event:Connect(function(theme)
                     dropdown.BlackOutline2Items.BackgroundColor3 = theme.outlinecolor2
                 end)
-                
+
                 dropdown.OutlineItems = Instance.new("Frame", dropdown.Main)
                 dropdown.OutlineItems.Name = "blackline"
                 dropdown.OutlineItems.ZIndex = 7
@@ -2517,7 +2965,6 @@ function library:CreateWindow(name, size, hidebutton)
                 dropdown.IgnoreBackButtons.Size = UDim2.new(0, 0, 0, 0)
                 dropdown.IgnoreBackButtons.ZIndex = 7
                 dropdown.IgnoreBackButtons.Text = ""
-                dropdown.IgnoreBackButtons.Active = false
                 dropdown.IgnoreBackButtons.Visible = false
                 dropdown.IgnoreBackButtons.AutoButtonColor = false
 
@@ -2528,6 +2975,10 @@ function library:CreateWindow(name, size, hidebutton)
                         end
                     end
                     return false
+                end
+
+                function dropdown:GetOptions()
+                    return dropdown.values
                 end
 
                 function dropdown:updateText(text)
@@ -2587,7 +3038,7 @@ function library:CreateWindow(name, size, hidebutton)
 
                             return
                         else
-                            dropdown.Nav.Rotation = 180
+                            dropdown.Nav.Rotation = 90
                             dropdown.ItemsFrame.Visible = false
                             dropdown.ItemsFrame.Active = false
                             dropdown.OutlineItems.Visible = false
@@ -2653,21 +3104,23 @@ function library:CreateWindow(name, size, hidebutton)
                 end
 
                 local MouseButton1Down = function()
-                    if dropdown.Nav.Rotation == 180 then
-                        dropdown.ItemsFrame.ScrollingEnabled = true
-                        sector.Main.Parent.ScrollingEnabled = false
-                        tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Rotation = 0 }):Play()
-                        dropdown.ItemsFrame.Visible = true
-                        dropdown.ItemsFrame.Active = true
-                        dropdown.IgnoreBackButtons.Visible = true
-                        dropdown.IgnoreBackButtons.Active = true
-                        dropdown.OutlineItems.Visible = true
-                        dropdown.BlackOutlineItems.Visible = true
-                        dropdown.BlackOutline2Items.Visible = true
+                    if dropdown.Nav.Rotation == 90 then
+                        tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Rotation = -90 }):Play()
+                        if dropdown.items and #dropdown.items ~= 0 then
+                            dropdown.ItemsFrame.ScrollingEnabled = true
+                            sector.Main.Parent.ScrollingEnabled = false
+                            dropdown.ItemsFrame.Visible = true
+                            dropdown.ItemsFrame.Active = true
+                            dropdown.IgnoreBackButtons.Visible = true
+                            dropdown.IgnoreBackButtons.Active = true
+                            dropdown.OutlineItems.Visible = true
+                            dropdown.BlackOutlineItems.Visible = true
+                            dropdown.BlackOutline2Items.Visible = true
+                        end
                     else
+                        tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Rotation = 90 }):Play()
                         dropdown.ItemsFrame.ScrollingEnabled = false
                         sector.Main.Parent.ScrollingEnabled = true
-                        tweenservice:Create(dropdown.Nav, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), { Rotation = 180 }):Play()
                         dropdown.ItemsFrame.Visible = false
                         dropdown.ItemsFrame.Active = false
                         dropdown.IgnoreBackButtons.Visible = false
@@ -2689,6 +3142,7 @@ function library:CreateWindow(name, size, hidebutton)
                 end)
 
                 sector:FixSize()
+                table.insert(library.items, dropdown)
                 return dropdown
             end
 
@@ -2761,6 +3215,130 @@ function library:CreateWindow(name, size, hidebutton)
             end
 
             return sector
+        end
+
+        function tab:CreateConfigSystem(side)
+            local configFolder = window.name .. "/" .. tostring(game.PlaceId)
+            if (not isfolder(configFolder)) then
+                makefolder(configFolder)
+            end
+
+            local Configs = tab:CreateSector("Configs", side or "left"); do
+                local ConfigName = Configs:AddTextbox("Config Name", "", ConfigName, function() end)
+                local Config = Configs:AddDropdown("Configs", {}, tostring(listfiles(configFolder)[1] or ""):gsub(configFolder .. "\\", ""):gsub(".txt", ""), false, function() end)
+    
+                for i,v in pairs(listfiles(configFolder)) do
+                    if v:find(".txt") then
+                        Config:Add(tostring(v):gsub(configFolder .. "\\", ""):gsub(".txt", ""))
+                    end
+                end
+    
+                Configs:AddButton("Create", function()
+                    for i,v in pairs(listfiles(configFolder)) do
+                        Config:Remove(tostring(v):gsub(configFolder .. "\\", ""):gsub(".txt", ""))
+                    end
+
+                    if ConfigName:Get() and ConfigName:Get() ~= "" then
+                        local config = {}
+        
+                        for i,v in pairs(library.flags) do
+                            if (v ~= nil and v ~= "") then
+                                if (typeof(v) == "Color3") then
+                                    config[i] = { v.R, v.G, v.B }
+                                elseif (tostring(v):find("Enum.KeyCode")) then
+                                    config[i] = v.Name
+                                elseif (typeof(v) == "table") then
+                                    config[i] = { v }
+                                else
+                                    config[i] = v
+                                end
+                            end
+                        end
+        
+                        writefile(configFolder .. "/" .. ConfigName:Get() .. ".txt", httpservice:JSONEncode(config))
+        
+                        for i,v in pairs(listfiles(configFolder)) do
+                            if v:find(".txt") then
+                                Config:Add(tostring(v):gsub(configFolder .. "\\", ""):gsub(".txt", ""))
+                            end
+                        end
+                    end
+                end)
+    
+                Configs:AddButton("Save", function()
+                    local config = {}
+                    if Config:Get() and Config:Get() ~= "" then
+                        print'test'
+                        for i,v in pairs(library.flags) do
+                            if (v ~= nil and v ~= "") then
+                                if (typeof(v) == "Color3") then
+                                    config[i] = { v.R, v.G, v.B }
+                                elseif (tostring(v):find("Enum.KeyCode")) then
+                                    config[i] = "Enum.KeyCode." .. v.Name
+                                elseif (typeof(v) == "table") then
+                                    config[i] = { v }
+                                else
+                                    config[i] = v
+                                end
+                            end
+                        end
+        
+                        writefile(configFolder .. "/" .. Config:Get() .. ".txt", httpservice:JSONEncode(config))
+                    end
+                end)
+    
+                Configs:AddButton("Load", function()
+                    local Success = pcall(readfile, configFolder .. "/" .. Config:Get() .. ".txt")
+                    if (Success) then
+                        local ReadConfig = httpservice:JSONDecode(readfile(configFolder .. "/" .. Config:Get() .. ".txt"))
+                        local NewConfig = {}
+
+                        for i,v in pairs(ReadConfig) do
+                            if (typeof(v) == "table") then
+                                if (typeof(v[1]) == "number") then
+                                    NewConfig[i] = Color3.new(v[1], v[2], v[3])
+                                elseif (typeof(v[1]) == "table") then
+                                    NewConfig[i] = v[1]
+                                end
+                            elseif (tostring(v):find("Enum.KeyCode.")) then
+                                NewConfig[i] = Enum.KeyCode[tostring(v):gsub("Enum.KeyCode.", "")]
+                            else
+                                NewConfig[i] = v
+                            end
+                        end
+    
+                        library.flags = NewConfig
+
+                        for i,v in pairs(library.flags) do
+                            for i2,v2 in pairs(library.items) do
+                                if (i ~= nil and i ~= "" and v2.flag ~= nil) then
+                                    if (v2.flag == i) then
+                                        v2:Set(v)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end)
+    
+                Configs:AddButton("Delete", function()
+                    for i,v in pairs(listfiles(configFolder)) do
+                        Config:Remove(tostring(v):gsub(configFolder .. "\\", ""):gsub(".txt", ""))
+                    end
+    
+                    if (not Config:Get() or Config:Get() == "") then return end
+                    if (not isfile(configFolder .. "/" .. Config:Get() .. ".txt")) then return end
+                    delfile(configFolder .. "/" .. Config:Get() .. ".txt")
+    
+                    for i,v in pairs(listfiles(configFolder)) do
+                        if v:find(".txt") then
+                            Config:Add(tostring(v):gsub(configFolder .. "\\", ""):gsub(".txt", ""))
+                        end
+                    end
+                end)
+            end
+    
+            return Configs
         end
 
         --[[ not finished lol
