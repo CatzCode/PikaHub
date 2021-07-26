@@ -1133,7 +1133,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.IgnoreBackButtons.Visible = false
                     dropdown.IgnoreBackButtons.AutoButtonColor = false
 
-                    library.flags[dropdown.flag] = dropdown.default or dropdown.defaultitems[1] or ""
+                    library.flags[dropdown.flag] = { dropdown.default or dropdown.defaultitems[1] or "" }
     
                     function dropdown:isSelected(item)
                         for i, v in pairs(dropdown.values) do
@@ -1162,7 +1162,7 @@ function library:CreateWindow(name, size, hidebutton)
                             pcall(dropdown.callback, value)
                         end
 
-                        library.flags[dropdown.flag] = value
+                        library.flags[dropdown.flag] = dropdown.values
                     end
     
                     function dropdown:Get()
@@ -2288,7 +2288,7 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.callback = callback or function() end
                     dropdown.multichoice = multichoice or false
                     dropdown.values = { }
-                    dropdown.flag = flag or ((colorpicker.text or "") .. tostring(#(sector.Items:GetChildren())))
+                    dropdown.flag = flag or ((colorpicker.text or "") .. tostring( #(sector.Items:GetChildren()) ))
     
                     dropdown.Main = Instance.new("TextButton", sector.Items)
                     dropdown.Main.Name = "dropdown"
@@ -2467,7 +2467,7 @@ function library:CreateWindow(name, size, hidebutton)
                             pcall(dropdown.callback, value)
                         end
 
-                        library.flags[dropdown.flag] = value
+                        library.flags[dropdown.flag] = dropdown.values
                     end
     
                     function dropdown:Get()
@@ -2972,6 +2972,8 @@ function library:CreateWindow(name, size, hidebutton)
                 dropdown.IgnoreBackButtons.Visible = false
                 dropdown.IgnoreBackButtons.AutoButtonColor = false
 
+                library.flags[dropdown.flag] = { dropdown.default or dropdown.defaultitems[1] or "" }
+
                 function dropdown:isSelected(item)
                     for i, v in pairs(dropdown.values) do
                         if v == item then
@@ -3002,6 +3004,7 @@ function library:CreateWindow(name, size, hidebutton)
                         dropdown.values = { value }
                         pcall(dropdown.callback, value)
                     end
+                    library.flags[dropdown.flag] = dropdown.values
                 end
 
                 function dropdown:Get()
@@ -3232,7 +3235,8 @@ function library:CreateWindow(name, size, hidebutton)
             configSystem.sector = tab:CreateSector("Configs", side or "left")
 
             local ConfigName = configSystem.sector:AddTextbox("Config Name", "", ConfigName, function() end, "Configs_Name")
-            local Config = configSystem.sector:AddDropdown("Configs", {}, tostring(listfiles(configSystem.configFolder)[1] or ""):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""), false, function() end, "Configs")
+            local default = tostring(listfiles(configSystem.configFolder)[1] or ""):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", "")
+            local Config = configSystem.sector:AddDropdown("Configs", {}, default, false, function() end, "Configs")
             for i,v in pairs(listfiles(configSystem.configFolder)) do
                 if v:find(".txt") then
                     Config:Add(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
