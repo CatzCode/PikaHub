@@ -3590,20 +3590,4 @@ function library:CreateWindow(name, size, hidebutton)
     return window
 end
 
-local window = library:CreateWindow("cattoware", Vector2.new(492, 598), Enum.KeyCode.RightShift)
-local tab = window:CreateTab("Test")
-local sec = tab:CreateSector("Test Config Settings", "Left")
-local togl = sec:AddToggle("test", false, function() 
-
-end)
-togl:AddKeybind(Enum.KeyCode.RightShift)
-togl:AddDropdown({"e", "f"}, "e", false, function() end)
-togl:AddColorpicker(Color3.new(), function() end)
-togl:AddSlider(0, 1, 10, 1, function() end)
-
-sec:AddSlider("Tewfw", 0, 1, 10, 1, function() end)
-sec:AddColorpicker("twegfwef", Color3.new(), function() end)
-
-tab:CreateConfigSystem("right")
-
 return library
