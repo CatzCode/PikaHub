@@ -1,5 +1,8 @@
 -- (WARNING: This Repository is Licensed! You are not permitted to use/copy this User Interface library)
-local library = { }
+local library = { 
+	flags = { }, 
+	items = { } 
+}
 
 -- Services
 local players = game:GetService("Players")
@@ -15,14 +18,14 @@ local player = players.LocalPlayer
 local mouse = player:GetMouse()
 local camera = game.Workspace.CurrentCamera
 
-library = {flags = {},items = {}}
-
 library.theme = {
     fontsize = 15,
     titlesize = 18,
     font = Enum.Font.Code,
     background = "rbxassetid://5553946656",
     tilesize = 90,
+    cursor = true,
+    cursorimg = "https://t0.rbxcdn.com/42f66da98c40252ee151326a82aab51f"
     backgroundcolor = Color3.fromRGB(20, 20, 20),
     tabstextcolor = Color3.fromRGB(240, 240, 240),
     bordercolor = Color3.fromRGB(60, 60, 60),
@@ -41,23 +44,25 @@ library.theme = {
     itemscolor2 = Color3.fromRGB(210, 210, 210)
 }
 
-local cursor = Drawing.new("Image")
-cursor.Data = game:HttpGet("https://t0.rbxcdn.com/42f66da98c40252ee151326a82aab51f")
-cursor.Size = Vector2.new(64, 64)
-cursor.Visible = uis.MouseEnabled
-cursor.Rounding = 0
-cursor.Position = Vector2.new(mouse.X - 32, mouse.Y + 6)
-uis.InputChanged:Connect(function(input)
-    if uis.MouseEnabled then
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            cursor.Position = Vector2.new(input.Position.X - 32, input.Position.Y + 7)
+if library.theme.cursor then
+    library.cursor = Drawing.new("Image")
+    library.cursor.Data = game:HttpGet(library.theme.cursorimg)
+    library.cursor.Size = Vector2.new(64, 64)
+    library.cursor.Visible = uis.MouseEnabled
+    library.cursor.Rounding = 0
+    library.cursor.Position = Vector2.new(mouse.X - 32, mouse.Y + 6)
+    uis.InputChanged:Connect(function(input)
+        if uis.MouseEnabled then
+            if input.UserInputType == Enum.UserInputType.MouseMovement then
+                library.cursor.Position = Vector2.new(input.Position.X - 32, input.Position.Y + 7)
+            end
         end
-    end
-end)
+    end)
+end
 
 game:GetService("RunService").RenderStepped:Connect(function()
     uis.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.ForceHide
-    cursor.Visible = uis.MouseEnabled and (uis.MouseIconEnabled or game:GetService("GuiService").MenuIsOpen)
+    library.cursor.Visible = uis.MouseEnabled and (uis.MouseIconEnabled or game:GetService("GuiService").MenuIsOpen)
 end)
 
 function library:CreateWatermark(name, position)
