@@ -874,7 +874,9 @@ function library:CreateWindow(name, size, hidebutton)
                 toggle.ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
                 toggle.ListLayout.Padding = UDim.new(0.04, 6)
 
-                library.flags[toggle.flag] = toggle.default or false
+                if toggle.flag and toggle.flag ~= "" then
+                    library.flags[toggle.flag] = toggle.default or false
+                end
 
                 function toggle:Set(value) 
                     if value then
@@ -885,7 +887,9 @@ function library:CreateWindow(name, size, hidebutton)
 
                     toggle.value = value
                     toggle.CheckedFrame.Visible = value
-                    library.flags[toggle.flag] = toggle.value
+                    if toggle.flag and toggle.flag ~= "" then
+                        library.flags[toggle.flag] = toggle.value
+                    end
                     pcall(toggle.callback, value)
                 end
                 function toggle:Get() 
@@ -936,17 +940,22 @@ function library:CreateWindow(name, size, hidebutton)
                         end
                     end)
 
-                    library.flags[keybind.flag] = keybind.default
-
+                    if keybind.flag and keybind.flag ~= "" then
+                        library.flags[keybind.flag] = keybind.default
+                    end
                     function keybind:Set(key)
                         if key == "None" then
                             keybind.Main.Text = "[" .. key .. "]"
                             keybind.value = key
-                            library.flags[keybind.flag] = key
+                            if keybind.flag and keybind.flag ~= "" then
+                                library.flags[keybind.flag] = key
+                            end
                         end
                         keybind.Main.Text = "[" .. (shorter_keycodes[key.Name] or key.Name) .. "]"
                         keybind.value = key
-                        library.flags[keybind.flag] = keybind.value
+                        if keybind.flag and keybind.flag ~= "" then
+                            library.flags[keybind.flag] = keybind.value
+                        end
                     end
 
                     function keybind:Get()
@@ -1133,8 +1142,10 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.IgnoreBackButtons.Visible = false
                     dropdown.IgnoreBackButtons.AutoButtonColor = false
 
-                    library.flags[dropdown.flag] = dropdown.multichoice and { dropdown.default or dropdown.defaultitems[1] or "" } or (dropdown.default or dropdown.defaultitems[1] or "")
-    
+                    if dropdown.flag and dropdown.flag ~= "" then
+                        library.flags[dropdown.flag] = dropdown.multichoice and { dropdown.default or dropdown.defaultitems[1] or "" } or (dropdown.default or dropdown.defaultitems[1] or "")
+                    end
+
                     function dropdown:isSelected(item)
                         for i, v in pairs(dropdown.values) do
                             if v == item then
@@ -1164,7 +1175,9 @@ function library:CreateWindow(name, size, hidebutton)
                         end
                         
                         dropdown.Changed:Fire(value)
-                        library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
+                        if dropdown.flag and dropdown.flag ~= "" then
+                            library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
+                        end
                     end
     
                     function dropdown:Get()
@@ -1348,12 +1361,16 @@ function library:CreateWindow(name, size, hidebutton)
                     textbox.Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                     textbox.Main.TextXAlignment = Enum.TextXAlignment.Left
     
-                    library.flags[textbox.flag] = textbox.default or ""
-    
+                    if textbox.flag and textbox.flag ~= "" then
+                        library.flags[textbox.flag] = textbox.default or ""
+                    end
+
                     function textbox:Set(text)
                         textbox.value = text
                         textbox.Main.Text = text
-                        library.flags[textbox.flag] = text
+                        if textbox.flag and textbox.flag ~= "" then
+                            library.flags[textbox.flag] = text
+                        end
                         pcall(textbox.callback, text)
                     end
                     updateevent.Event:Connect(function(theme)
@@ -1475,9 +1492,9 @@ function library:CreateWindow(name, size, hidebutton)
                     end)
 
                     colorpicker.BlackOutline2.MouseEnter:Connect(function()
-
                         colorpicker.BlackOutline2.BackgroundColor3 = window.theme.accentcolor
                     end)
+
                     colorpicker.BlackOutline2.MouseLeave:Connect(function()
                         if not window.OpenedColorPickers[colorpicker.MainPicker] then
                             colorpicker.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
@@ -1579,7 +1596,9 @@ function library:CreateWindow(name, size, hidebutton)
                     colorpicker.pointer.Size = UDim2.new(0,2,0,10)
                     colorpicker.pointer.BorderColor3 = Color3.fromRGB(255, 255, 255)
 
-                    library.flags[colorpicker.flag] = colorpicker.default
+                    if colorpicker.flag and colorpicker.flag ~= "" then
+                        library.flags[colorpicker.flag] = colorpicker.default
+                    end
 
                     function colorpicker:RefreshHue()
                         local x = (mouse.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X
@@ -1602,7 +1621,9 @@ function library:CreateWindow(name, size, hidebutton)
                     function colorpicker:Set(value)
                         local color = Color3.new(math.clamp(value.r, 0, 1), math.clamp(value.g, 0, 1), math.clamp(value.b, 0, 1))
                         colorpicker.value = color
-                        library.flags[colorpicker.flag] = color
+                        if colorpicker.flag and colorpicker.flag ~= "" then
+                            library.flags[colorpicker.flag] = color
+                        end
                         local clr = Color3.new(math.clamp(color.R / 1.7, 0, 1), math.clamp(color.G / 1.7, 0, 1), math.clamp(color.B / 1.7, 0, 1))
                         colorpicker.Gradient.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0.00, color), ColorSequenceKeypoint.new(1.00, clr) })
                         pcall(colorpicker.callback, color)
@@ -1776,8 +1797,10 @@ function library:CreateWindow(name, size, hidebutton)
                         slider.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
                     end)
     
-                    library.flags[slider.flag] = slider.default or slider.min or 0
-    
+                    if slider.flag and slider.flag ~= "" then
+                        library.flags[slider.flag] = slider.default or slider.min or 0
+                    end
+
                     function slider:Get()
                         return slider.value
                     end
@@ -1785,7 +1808,9 @@ function library:CreateWindow(name, size, hidebutton)
                     function slider:Set(value)
                         slider.value = math.clamp(math.round(value * slider.decimals) / slider.decimals, slider.min, slider.max)
                         local percent = 1 - ((slider.max - slider.value) / (slider.max - slider.min))
-                        library.flags[slider.flag] = slider.value
+                        if slider.flag and slider.flag ~= "" then
+                            library.flags[slider.flag] = slider.value
+                        end
                         slider.SlideBar:TweenSize(UDim2.fromOffset(percent * slider.Main.AbsoluteSize.X, slider.Main.AbsoluteSize.Y), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.05)
                         slider.InputLabel.Text = slider.value
                         pcall(slider.callback, slider.value)
@@ -1918,12 +1943,16 @@ function library:CreateWindow(name, size, hidebutton)
                 textbox.Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
                 textbox.Main.TextXAlignment = Enum.TextXAlignment.Left
 
-                library.flags[textbox.flag] = textbox.default or ""
+                if textbox.flag and textbox.flag ~= "" then
+                    library.flags[textbox.flag] = textbox.default or ""
+                end
 
                 function textbox:Set(text)
                     textbox.value = text
                     textbox.Main.Text = text
-                    library.flags[textbox.flag] = text
+                    if textbox.flag and textbox.flag ~= "" then
+                        library.flags[textbox.flag] = text
+                    end
                     pcall(textbox.callback, text)
                 end
                 updateevent.Event:Connect(function(theme)
@@ -2111,7 +2140,9 @@ function library:CreateWindow(name, size, hidebutton)
                     slider.BlackOutline2.BackgroundColor3 = window.theme.outlinecolor2
                 end)
 
-                library.flags[slider.flag] = slider.default or slider.min or 0
+                if slider.flag and slider.flag ~= "" then
+                    library.flags[slider.flag] = slider.default or slider.min or 0
+                end
 
                 function slider:Get()
                     return slider.value
@@ -2120,7 +2151,9 @@ function library:CreateWindow(name, size, hidebutton)
                 function slider:Set(value)
                     slider.value = math.clamp(math.round(value * slider.decimals) / slider.decimals, slider.min, slider.max)
                     local percent = 1 - ((slider.max - slider.value) / (slider.max - slider.min))
-                    library.flags[slider.flag] = slider.value
+                    if slider.flag and slider.flag ~= "" then
+                        library.flags[slider.flag] = slider.value
+                    end
                     slider.SlideBar:TweenSize(UDim2.fromOffset(percent * slider.Main.AbsoluteSize.X, slider.Main.AbsoluteSize.Y), Enum.EasingDirection.In, Enum.EasingStyle.Sine, 0.05)
 					slider.InputLabel.Text = slider.value
 					pcall(slider.callback, slider.value)
@@ -2357,7 +2390,9 @@ function library:CreateWindow(name, size, hidebutton)
                 colorpicker.pointer.Size = UDim2.new(0,2,0,10)
                 colorpicker.pointer.BorderColor3 = Color3.fromRGB(255, 255, 255)
 
-                library.flags[colorpicker.flag] = colorpicker.default
+                if colorpicker.flag and colorpicker.flag ~= "" then
+                    library.flags[colorpicker.flag] = colorpicker.default
+                end
 
                 function colorpicker:RefreshSelector()
                     local pos = math.clamp((mouse.X - colorpicker.hue.AbsolutePosition.X) / colorpicker.hue.AbsoluteSize.X, 0, 1)
@@ -2376,7 +2411,9 @@ function library:CreateWindow(name, size, hidebutton)
                 function colorpicker:Set(value)
                     local color = Color3.new(math.clamp(value.r, 0, 1), math.clamp(value.g, 0, 1), math.clamp(value.b, 0, 1))
                     colorpicker.value = color
-                    library.flags[colorpicker.flag] = color
+                    if colorpicker.flag and colorpicker.flag ~= "" then
+                        library.flags[colorpicker.flag] = color
+                    end
                     local clr = Color3.new(math.clamp(color.R / 1.7, 0, 1), math.clamp(color.G / 1.7, 0, 1), math.clamp(color.B / 1.7, 0, 1))
                     colorpicker.Gradient.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0.00, color), ColorSequenceKeypoint.new(1.00, clr) })
                     pcall(colorpicker.callback, color)
@@ -2544,7 +2581,9 @@ function library:CreateWindow(name, size, hidebutton)
                     dropdown.IgnoreBackButtons.Visible = false
                     dropdown.IgnoreBackButtons.AutoButtonColor = false
 
-                    library.flags[dropdown.flag] = dropdown.multichoice and { dropdown.default or dropdown.defaultitems[1] or "" } or (dropdown.default or dropdown.defaultitems[1] or "")
+                    if dropdown.flag and dropdown.flag ~= "" then
+                        library.flags[dropdown.flag] = dropdown.multichoice and { dropdown.default or dropdown.defaultitems[1] or "" } or (dropdown.default or dropdown.defaultitems[1] or "")
+                    end
 
                     function dropdown:isSelected(item)
                         for i, v in pairs(dropdown.values) do
@@ -2575,7 +2614,9 @@ function library:CreateWindow(name, size, hidebutton)
                         end
                         
                         dropdown.Changed:Fire(value)
-                        library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
+                        if dropdown.flag and dropdown.flag ~= "" then
+                            library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
+                        end
                     end
     
                     function dropdown:Get()
@@ -2836,7 +2877,9 @@ function library:CreateWindow(name, size, hidebutton)
                     keybind.Bind.Font = theme.font
                 end)
 
-                library.flags[keybind.flag] = keybind.default
+                if keybind.flag and keybind.flag ~= "" then
+                    library.flags[keybind.flag] = keybind.default
+                end
 
                 local shorter_keycodes = {
                     ["LeftShift"] = "LSHIFT",
@@ -2855,7 +2898,9 @@ function library:CreateWindow(name, size, hidebutton)
                         local size = textservice:GetTextSize(keybind.Bind.Text, keybind.Bind.TextSize, keybind.Bind.Font, Vector2.new(2000, 2000))
                         keybind.Bind.Size = UDim2.fromOffset(size.X, size.Y)
                         keybind.Bind.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 10 - keybind.Bind.AbsoluteSize.X, 0)
-                        library.flags[keybind.flag] = value
+                        if keybind.flag and keybind.flag ~= "" then
+                            library.flags[keybind.flag] = value
+                        end
                         pcall(keybind.newkeycallback, value)
                     end
 
@@ -2865,7 +2910,9 @@ function library:CreateWindow(name, size, hidebutton)
                     local size = textservice:GetTextSize(keybind.Bind.Text, keybind.Bind.TextSize, keybind.Bind.Font, Vector2.new(2000, 2000))
                     keybind.Bind.Size = UDim2.fromOffset(size.X, size.Y)
                     keybind.Bind.Position = UDim2.fromOffset(sector.Main.Size.X.Offset - 10 - keybind.Bind.AbsoluteSize.X, 0)
-                    library.flags[keybind.flag] = value
+                    if keybind.flag and keybind.flag ~= "" then
+                        library.flags[keybind.flag] = value
+                    end
                     pcall(keybind.newkeycallback, value)
                 end
                 keybind:Set(keybind.default and keybind.default or "None")
@@ -3080,7 +3127,9 @@ function library:CreateWindow(name, size, hidebutton)
                 dropdown.IgnoreBackButtons.Visible = false
                 dropdown.IgnoreBackButtons.AutoButtonColor = false
 
-                library.flags[dropdown.flag] = dropdown.multichoice and { dropdown.default or dropdown.defaultitems[1] or "" } or (dropdown.default or dropdown.defaultitems[1] or "")
+                if dropdown.flag and dropdown.flag ~= "" then
+                    library.flags[dropdown.flag] = dropdown.multichoice and { dropdown.default or dropdown.defaultitems[1] or "" } or (dropdown.default or dropdown.defaultitems[1] or "")
+                end
 
                 function dropdown:isSelected(item)
                     for i, v in pairs(dropdown.values) do
@@ -3115,7 +3164,9 @@ function library:CreateWindow(name, size, hidebutton)
                     end
                     
                     dropdown.Changed:Fire(value)
-                    library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
+                    if dropdown.flag and dropdown.flag ~= "" then
+                        library.flags[dropdown.flag] = dropdown.multichoice and dropdown.values or dropdown.values[1]
+                    end
                 end
 
                 function dropdown:Get()
@@ -3345,9 +3396,9 @@ function library:CreateWindow(name, size, hidebutton)
 
             configSystem.sector = tab:CreateSector("Configs", side or "left")
 
-            local ConfigName = configSystem.sector:AddTextbox("Config Name", "", ConfigName, function() end, "Configs_Name")
+            local ConfigName = configSystem.sector:AddTextbox("Config Name", "", ConfigName, function() end, "")
             local default = tostring(listfiles(configSystem.configFolder)[1] or ""):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", "")
-            local Config = configSystem.sector:AddDropdown("Configs", {}, default, false, function() end, "Configs")
+            local Config = configSystem.sector:AddDropdown("Configs", {}, default, false, function() end, "")
             for i,v in pairs(listfiles(configSystem.configFolder)) do
                 if v:find(".txt") then
                     Config:Add(tostring(v):gsub(configSystem.configFolder .. "\\", ""):gsub(".txt", ""))
